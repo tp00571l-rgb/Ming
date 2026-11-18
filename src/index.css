@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    font-family: "Sarabun", ui-sans-serif, system-ui, sans-serif;
+    font-family: "Sarabun", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   }
 
   .font-mono-tabular {

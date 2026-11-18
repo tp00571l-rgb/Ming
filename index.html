@@ -3,53 +3,132 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Step 1: โครงร่างหลักอ่านไฟล์ Excel — ระบบจัดการข้อมูลใบงาน</title>
+    <title>ระบบจัดการข้อมูลใบงาน — นำเข้าและตรวจสอบไฟล์ Excel</title>
     <meta name="description" content="ระบบนำเข้าและตรวจสอบความถูกต้องของข้อมูลใบงานจากไฟล์ Excel (.xlsx, .xls) และ CSV" />
-    <meta property="og:title" content="Step 1: โครงร่างหลักอ่านไฟล์ Excel — ระบบจัดการข้อมูลใบงาน" />
+    <meta property="og:title" content="ระบบจัดการข้อมูลใบงาน — นำเข้าและตรวจสอบไฟล์ Excel" />
     <meta property="og:description" content="ระบบนำเข้าและตรวจสอบความถูกต้องของข้อมูลใบงานจากไฟล์ Excel (.xlsx, .xls) และ CSV" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
-    <!-- ฟอนต์ภาษาไทยอ่านง่าย -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <!-- Tailwind CSS (ประมวลผลผ่าน Vite + @tailwindcss/vite) -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/src/index.css" />
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen p-4 md:p-8">
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
 
-    <div class="max-w-7xl mx-auto space-y-6">
+    <!-- Top Navigation Bar: โครงสร้าง 3 โซนแถวเดียว -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-8">
+            <a href="#top" class="text-lg font-bold tracking-tight text-slate-900 whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded">
+                ระบบจัดการข้อมูลใบงาน
+            </a>
 
-        <!-- ส่วนหัวของหน้าเว็บ -->
-        <header class="bg-slate-900 text-white p-6 rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-                <h1 class="text-xl font-bold">ระบบจัดการข้อมูลใบงาน (โครงร่างหลัก Step 1)</h1>
-                <p class="text-xs text-slate-400 mt-1">ทดสอบการนำเข้าไฟล์ Excel และแสดงผลตารางข้อมูลดิบทั้งหมด</p>
+            <nav aria-label="เมนูหลัก" class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+                <a href="#import-section" class="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0">นำเข้าไฟล์</a>
+                <a href="#table-section" class="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0">ตารางข้อมูลดิบ</a>
+            </nav>
+
+            <div class="flex items-center gap-3 shrink-0">
+                <button type="button" id="headerUploadBtn"
+                        class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                    <span>เลือกไฟล์ Excel</span>
+                </button>
             </div>
-            <div id="statusBadge" class="text-xs bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full text-slate-300">
-                สถานะ: รอการนำเข้าไฟล์
-            </div>
-        </header>
+        </div>
+    </header>
 
-        <!-- กล่องอัปโหลดไฟล์ Excel -->
-        <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <label for="excelFileInput" class="block text-sm font-bold text-slate-700 mb-3">เลือกไฟล์ Excel (.xlsx, .xls) หรือ CSV</label>
-            <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv"
-                   class="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-5 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer border border-slate-300 rounded-lg bg-slate-50" />
+    <main id="top" class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 flex-1">
+
+        <!-- ส่วนหัวหน้าเพจ + ข้อมูลสถานะแบบเรียบ -->
+        <section class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div class="space-y-1">
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900 [text-wrap:balance]">
+                    โครงร่างหลักนำเข้าไฟล์ Excel
+                </h1>
+                <p class="text-sm text-slate-600">
+                    อ่านไฟล์ .xlsx, .xls หรือ .csv ในเบราว์เซอร์โดยตรง เพื่อตรวจสอบโครงสร้างและข้อมูลดิบทั้งหมด
+                </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                <span id="statusBadge" class="font-medium text-slate-700">สถานะ: รอการนำเข้าไฟล์</span>
+                <span aria-hidden="true">·</span>
+                <span>ประมวลผลฝั่งเบราว์เซอร์</span>
+            </div>
         </section>
 
-        <!-- พื้นที่สำหรับวางปุ่มคำสั่งเพิ่มเติมในอนาคต (Step 3) -->
-        <div id="actionToolbar" class="hidden flex-wrap gap-3">
-            <!-- เตรียมพื้นที่ไว้สำหรับใส่ปุ่มในขั้นตอนถัดไป -->
-        </div>
+        <!-- กล่องอัปโหลดไฟล์แบบลากวาง (Dropzone) -->
+        <section id="import-section" aria-label="อัปโหลดไฟล์ข้อมูล">
+            <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="sr-only" />
+            <div id="dropZone"
+                 class="bg-white border border-slate-200 rounded-xl p-6 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-300">
+                <div class="flex items-start sm:items-center gap-4">
+                    <div class="w-11 h-11 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 shrink-0">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <path d="M8 13h2" />
+                            <path d="M8 17h2" />
+                            <path d="M14 13h2" />
+                            <path d="M14 17h2" />
+                        </svg>
+                    </div>
+                    <div>
+                        <label for="excelFileInput" class="block text-sm font-semibold text-slate-900 cursor-pointer">
+                            เลือกไฟล์ Excel (.xlsx, .xls) หรือ CSV
+                        </label>
+                        <p id="fileMetaText" class="text-xs text-slate-500 mt-0.5">
+                            คลิกเลือกไฟล์จากเครื่อง หรือลากไฟล์มาวางภายในกรอบนี้
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                    <button type="button" id="selectFileBtn"
+                            class="px-4 py-2 text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2">
+                        เลือกไฟล์จากเครื่อง
+                    </button>
+                    <button type="button" id="resetDataBtn"
+                            class="hidden px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
+                        ล้างข้อมูล
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- แถบเครื่องมือจัดการข้อมูล (แสดงเมื่อมีข้อมูลแล้ว และพร้อมต่อยอด Step 3) -->
+        <section id="actionToolbar" aria-label="เครื่องมือจัดการตาราง"
+                 class="hidden flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-xl p-4">
+            <div class="flex flex-wrap items-center gap-2" id="sheetTabsContainer">
+                <!-- ปุ่มสลับชีต (จะสร้างอัตโนมัติเมื่อไฟล์มีหลายชีต) -->
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="relative min-w-[220px] flex-1 sm:flex-initial">
+                    <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input type="search" id="tableSearchInput" placeholder="ค้นหาในตาราง..." aria-label="ค้นหาข้อมูลในตาราง"
+                           class="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white" />
+                </div>
+            </div>
+        </section>
 
         <!-- ตารางแสดงผลข้อมูลดิบ -->
-        <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-                <h2 class="font-bold text-slate-800 text-sm">ตารางข้อมูลจากไฟล์</h2>
-                <span id="rowCount" class="text-xs font-semibold text-blue-700 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-                    ทั้งหมด 0 แถว
-                </span>
+        <section id="table-section" class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex flex-wrap justify-between items-center gap-2">
+                <h2 class="font-bold text-slate-900 text-sm">ตารางข้อมูลจากไฟล์</h2>
+                <div class="flex items-center gap-2 text-xs text-slate-600 font-mono-tabular">
+                    <span id="rowCount">ทั้งหมด 0 แถว</span>
+                    <span id="columnCountSeparator" class="hidden" aria-hidden="true">·</span>
+                    <span id="columnCount" class="hidden">0 คอลัมน์</span>
+                </div>
             </div>
 
             <div class="overflow-x-auto max-h-[600px]">
@@ -61,89 +140,242 @@
                     </thead>
                     <tbody id="tableBody" class="divide-y divide-slate-200 text-slate-700">
                         <tr>
-                            <td class="text-center py-12 text-slate-400">กรุณาเลือกไฟล์ Excel ด้านบนเพื่อแสดงข้อมูล</td>
+                            <td class="text-center py-14 px-6 text-slate-500">
+                                <p class="text-sm font-medium text-slate-700">ยังไม่มีข้อมูลที่นำเข้า</p>
+                                <p class="text-xs text-slate-500 mt-1">เลือกไฟล์ Excel หรือ CSV ด้านบนเพื่อแสดงข้อมูลทั้งหมดในตาราง</p>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
-    </div>
+    </main>
 
     <script type="module">
         import * as XLSX from 'xlsx';
 
         // ตัวแปรส่วนกลางสำหรับเก็บข้อมูลที่อ่านได้จาก Excel
         let rawData = [];
+        let currentWorkbook = null;
+        let activeSheetName = "";
 
         const fileInput = document.getElementById("excelFileInput");
+        const headerUploadBtn = document.getElementById("headerUploadBtn");
+        const selectFileBtn = document.getElementById("selectFileBtn");
+        const resetDataBtn = document.getElementById("resetDataBtn");
+        const dropZone = document.getElementById("dropZone");
         const statusBadge = document.getElementById("statusBadge");
+        const fileMetaText = document.getElementById("fileMetaText");
+        const actionToolbar = document.getElementById("actionToolbar");
+        const sheetTabsContainer = document.getElementById("sheetTabsContainer");
+        const tableSearchInput = document.getElementById("tableSearchInput");
+
+        function openFilePicker() {
+            fileInput.click();
+        }
+
+        headerUploadBtn.addEventListener("click", openFilePicker);
+        selectFileBtn.addEventListener("click", openFilePicker);
+
+        resetDataBtn.addEventListener("click", function() {
+            rawData = [];
+            currentWorkbook = null;
+            activeSheetName = "";
+            fileInput.value = "";
+            tableSearchInput.value = "";
+            statusBadge.textContent = "สถานะ: รอการนำเข้าไฟล์";
+            fileMetaText.textContent = "คลิกเลือกไฟล์จากเครื่อง หรือลากไฟล์มาวางภายในกรอบนี้";
+            actionToolbar.classList.add("hidden");
+            actionToolbar.classList.remove("flex");
+            resetDataBtn.classList.add("hidden");
+            sheetTabsContainer.replaceChildren();
+            renderEmptyState("ยังไม่มีข้อมูลที่นำเข้า", "เลือกไฟล์ Excel หรือ CSV ด้านบนเพื่อแสดงข้อมูลทั้งหมดในตาราง");
+        });
+
+        // รองรับการลากไฟล์มาวาง (Drag and Drop)
+        dropZone.addEventListener("dragover", function(e) {
+            e.preventDefault();
+            dropZone.classList.add("border-blue-500", "bg-blue-50/40");
+        });
+
+        dropZone.addEventListener("dragleave", function() {
+            dropZone.classList.remove("border-blue-500", "bg-blue-50/40");
+        });
+
+        dropZone.addEventListener("drop", function(e) {
+            e.preventDefault();
+            dropZone.classList.remove("border-blue-500", "bg-blue-50/40");
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                handleSelectedFile(file);
+            }
+        });
 
         // ดักจับเหตุการณ์เมื่อผู้ใช้เลือกไฟล์
         fileInput.addEventListener("change", function(event) {
             const file = event.target.files[0];
-            if (!file) return;
+            if (file) {
+                handleSelectedFile(file);
+            }
+            event.target.value = "";
+        });
 
-            // อัปเดตป้ายสถานะ
+        // ค้นหาในตารางแบบเรียลไทม์
+        tableSearchInput.addEventListener("input", function() {
+            const keyword = tableSearchInput.value.trim().toLowerCase();
+            if (!keyword) {
+                renderRawTable(rawData);
+                return;
+            }
+            const filtered = rawData.filter(row =>
+                Object.values(row).some(val => String(val ?? "").toLowerCase().includes(keyword))
+            );
+            renderRawTable(filtered, rawData.length);
+        });
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return `${bytes} B`;
+            if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+            return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+        }
+
+        function handleSelectedFile(file) {
             statusBadge.textContent = `กำลังอ่านไฟล์: ${file.name}`;
 
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const data = new Uint8Array(e.target.result);
-                    // อ่านไฟล์ด้วย SheetJS
                     const workbook = XLSX.read(data, { type: "array" });
 
                     if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
                         throw new Error("ไม่พบแผ่นงาน (Sheet) ในไฟล์นี้");
                     }
 
-                    // เลือกแผ่นงาน (Sheet) แรกสุด
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-
-                    // แปลงข้อมูลทั้งหมดเป็น JSON Array (เก็บค่าว่างเป็น "" และใช้ค่าที่ format ตาม Excel)
-                    rawData = XLSX.utils.sheet_to_json(worksheet, { defval: "", raw: false });
-
-                    statusBadge.textContent = `โหลดสำเร็จ: ${file.name} (ชีต: ${firstSheetName})`;
-                    renderRawTable(rawData);
+                    currentWorkbook = workbook;
+                    loadSheet(workbook.SheetNames[0], file.name, file.size);
                 } catch (err) {
                     rawData = [];
-                    statusBadge.textContent = `เกิดข้อผิดพลาดในการอ่านไฟล์: ${err.message || "ไฟล์ไม่ถูกต้อง"}`;
-                    renderRawTable([]);
+                    currentWorkbook = null;
+                    statusBadge.textContent = `เกิดข้อผิดพลาด: ${err.message || "ไม่สามารถอ่านไฟล์ได้"}`;
+                    renderEmptyState("ไม่สามารถอ่านไฟล์ได้", err.message || "กรุณาตรวจสอบว่าไฟล์ไม่เสียหายหรือไม่ได้ตั้งรหัสผ่าน");
                 }
             };
 
             reader.onerror = function() {
                 rawData = [];
+                currentWorkbook = null;
                 statusBadge.textContent = "เกิดข้อผิดพลาดระหว่างเปิดอ่านไฟล์";
-                renderRawTable([]);
+                renderEmptyState("เกิดข้อผิดพลาด", "ไม่สามารถเปิดอ่านไฟล์จากอุปกรณ์ของคุณได้");
             };
 
             reader.readAsArrayBuffer(file);
-        });
+        }
 
-        // ฟังก์ชันวาดตารางแสดงผล (ใช้ DocumentFragment + textContent เพื่อความเร็วและปลอดภัยจาก XSS)
-        function renderRawTable(dataList) {
+        function loadSheet(sheetName, fileName, fileSize) {
+            if (!currentWorkbook) return;
+            activeSheetName = sheetName;
+            const worksheet = currentWorkbook.Sheets[sheetName];
+            rawData = XLSX.utils.sheet_to_json(worksheet, { defval: "", raw: false });
+
+            tableSearchInput.value = "";
+            statusBadge.textContent = `โหลดสำเร็จ: ${fileName} (ชีต: ${sheetName})`;
+            if (fileSize !== undefined) {
+                fileMetaText.textContent = `ไฟล์ปัจจุบัน: ${fileName} · ขนาด ${formatFileSize(fileSize)} · ${currentWorkbook.SheetNames.length} แผ่นงาน`;
+            }
+
+            renderSheetTabs(fileName);
+            actionToolbar.classList.remove("hidden");
+            actionToolbar.classList.add("flex");
+            resetDataBtn.classList.remove("hidden");
+
+            renderRawTable(rawData);
+        }
+
+        function renderSheetTabs(fileName) {
+            sheetTabsContainer.replaceChildren();
+            if (!currentWorkbook) return;
+
+            const label = document.createElement("span");
+            label.className = "text-xs font-semibold text-slate-500 mr-1 whitespace-nowrap";
+            label.textContent = "แผ่นงาน:";
+            sheetTabsContainer.appendChild(label);
+
+            const group = document.createElement("div");
+            group.className = "flex items-center gap-1 p-1 bg-slate-100 rounded-lg overflow-x-auto max-w-full";
+
+            currentWorkbook.SheetNames.forEach(name => {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                const isActive = name === activeSheetName;
+                btn.className = isActive
+                    ? "px-3 py-1.5 text-xs font-medium rounded-md bg-white text-slate-900 shadow-xs whitespace-nowrap shrink-0 cursor-pointer"
+                    : "px-3 py-1.5 text-xs font-medium rounded-md text-slate-600 hover:text-slate-900 whitespace-nowrap shrink-0 cursor-pointer";
+                btn.textContent = name;
+                btn.addEventListener("click", () => loadSheet(name, fileName));
+                group.appendChild(btn);
+            });
+
+            sheetTabsContainer.appendChild(group);
+        }
+
+        function renderEmptyState(title, subtitle) {
             const thead = document.getElementById("tableHeader");
             const tbody = document.getElementById("tableBody");
             const countBadge = document.getElementById("rowCount");
+            const colSep = document.getElementById("columnCountSeparator");
+            const colCount = document.getElementById("columnCount");
+
+            thead.replaceChildren();
+            tbody.replaceChildren();
+
+            const tr = document.createElement("tr");
+            const td = document.createElement("td");
+            td.className = "text-center py-14 px-6 text-slate-500";
+
+            const pTitle = document.createElement("p");
+            pTitle.className = "text-sm font-medium text-slate-700";
+            pTitle.textContent = title;
+
+            const pSub = document.createElement("p");
+            pSub.className = "text-xs text-slate-500 mt-1";
+            pSub.textContent = subtitle;
+
+            td.appendChild(pTitle);
+            td.appendChild(pSub);
+            tr.appendChild(td);
+            tbody.appendChild(tr);
+
+            countBadge.textContent = "ทั้งหมด 0 แถว";
+            colSep.classList.add("hidden");
+            colCount.classList.add("hidden");
+        }
+
+        // ฟังก์ชันวาดตารางแสดงผล
+        function renderRawTable(dataList, totalRowCount) {
+            const thead = document.getElementById("tableHeader");
+            const tbody = document.getElementById("tableBody");
+            const countBadge = document.getElementById("rowCount");
+            const colSep = document.getElementById("columnCountSeparator");
+            const colCount = document.getElementById("columnCount");
 
             thead.replaceChildren();
             tbody.replaceChildren();
 
             if (!dataList || dataList.length === 0) {
-                const emptyTr = document.createElement("tr");
-                const emptyTd = document.createElement("td");
-                emptyTd.className = "text-center py-12 text-slate-400";
-                emptyTd.textContent = "ไม่พบข้อมูลในไฟล์นี้";
-                emptyTr.appendChild(emptyTd);
-                tbody.appendChild(emptyTr);
-                countBadge.textContent = "ทั้งหมด 0 แถว";
+                const isSearchEmpty = typeof totalRowCount === "number" && totalRowCount > 0;
+                renderEmptyState(
+                    isSearchEmpty ? "ไม่พบข้อมูลที่ตรงกับคำค้นหา" : "ไม่พบข้อมูลในแผ่นงานนี้",
+                    isSearchEmpty ? "ลองเปลี่ยนคำค้นหาหรือล้างช่องค้นหาเพื่อดูข้อมูลทั้งหมด" : "แผ่นงานที่เลือกไม่มีแถวข้อมูล"
+                );
+                if (isSearchEmpty) {
+                    countBadge.textContent = `แสดง 0 / ${totalRowCount} แถว`;
+                }
                 return;
             }
 
-            // 1. รวมรายชื่อหัวตารางทั้งหมดจากทุกแถว (ไม่ตกหล่นคอลัมน์ที่โผล่ในแถวถัดไป)
+            // 1. รวมรายชื่อหัวตารางทั้งหมดจากทุกแถว
             const headerSet = new Set();
             dataList.forEach(row => {
                 Object.keys(row).forEach(key => headerSet.add(key));
@@ -153,7 +385,7 @@
             // 2. สร้างหัวตาราง (ใส่คอลัมน์ลำดับที่ไว้หน้าสุด)
             const headFragment = document.createDocumentFragment();
             const indexTh = document.createElement("th");
-            indexTh.className = "px-4 py-3 whitespace-nowrap bg-slate-200/70 w-12 text-center";
+            indexTh.className = "px-4 py-3 whitespace-nowrap bg-slate-200/70 w-14 text-center font-mono-tabular";
             indexTh.textContent = "#";
             headFragment.appendChild(indexTh);
 
@@ -165,23 +397,30 @@
             });
             thead.appendChild(headFragment);
 
-            // 3. วนลูปสร้างข้อมูลทีละแถวด้วย DocumentFragment
+            // 3. วนลูปสร้างข้อมูลทีละแถว
             const bodyFragment = document.createDocumentFragment();
             dataList.forEach((row, index) => {
                 const tr = document.createElement("tr");
                 tr.className = "hover:bg-blue-50/50 transition-colors";
 
                 const indexTd = document.createElement("td");
-                indexTd.className = "px-4 py-2.5 text-center text-xs text-slate-400 font-medium bg-slate-50/50 tabular-nums";
+                indexTd.className = "px-4 py-2.5 text-center text-xs text-slate-400 font-medium bg-slate-50/60 font-mono-tabular";
                 indexTd.textContent = String(index + 1);
                 tr.appendChild(indexTd);
 
                 headers.forEach(header => {
                     const td = document.createElement("td");
-                    td.className = "px-4 py-2.5 whitespace-nowrap";
                     const rawVal = row[header];
                     const isEmpty = rawVal === "" || rawVal === null || rawVal === undefined;
-                    td.textContent = isEmpty ? "-" : String(rawVal);
+                    const text = isEmpty ? "-" : String(rawVal);
+                    const isNumeric = !isEmpty && /^-?\d[\d,]*(\.\d+)?$/.test(text.trim());
+
+                    td.className = isEmpty
+                        ? "px-4 py-2.5 whitespace-nowrap text-slate-400"
+                        : isNumeric
+                            ? "px-4 py-2.5 whitespace-nowrap font-mono-tabular text-slate-800"
+                            : "px-4 py-2.5 whitespace-nowrap text-slate-800";
+                    td.textContent = text;
                     tr.appendChild(td);
                 });
 
@@ -189,7 +428,14 @@
             });
             tbody.appendChild(bodyFragment);
 
-            countBadge.textContent = `ทั้งหมด ${dataList.length} แถว`;
+            if (typeof totalRowCount === "number" && totalRowCount !== dataList.length) {
+                countBadge.textContent = `แสดง ${dataList.length} / ${totalRowCount} แถว`;
+            } else {
+                countBadge.textContent = `ทั้งหมด ${dataList.length} แถว`;
+            }
+            colSep.classList.remove("hidden");
+            colCount.classList.remove("hidden");
+            colCount.textContent = `${headers.length} คอลัมน์`;
         }
     </script>
 </body>
