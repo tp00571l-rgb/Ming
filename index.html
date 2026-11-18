@@ -9,9 +9,26 @@
     <meta property="og:description" content="ระบบนำเข้าและตรวจสอบความถูกต้องของข้อมูลใบงานจากไฟล์ Excel (.xlsx, .xls) และ CSV" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+    <!-- ฟอนต์ภาษาไทย Sarabun และ JetBrains Mono สำหรับตัวเลขในตาราง -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <!-- Tailwind CSS v4 Browser CDN (ทำงานได้ทันทีบน GitHub Pages โดยไม่ต้อง Build) -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- SheetJS (xlsx) สำหรับอ่านไฟล์ Excel ในเบราว์เซอร์ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: "Sarabun", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+        }
+        .font-mono-tabular {
+            font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
 
@@ -151,10 +168,7 @@
 
     </main>
 
-    <script type="module">
-        import '/src/index.css';
-        import * as XLSX from 'xlsx';
-
+    <script>
         // ตัวแปรส่วนกลางสำหรับเก็บข้อมูลที่อ่านได้จาก Excel
         let rawData = [];
         let currentWorkbook = null;
@@ -241,6 +255,12 @@
         }
 
         function handleSelectedFile(file) {
+            if (typeof XLSX === "undefined") {
+                statusBadge.textContent = "ไม่สามารถโหลดไลบรารีอ่านไฟล์ Excel ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต";
+                renderEmptyState("ไม่พบไลบรารี SheetJS", "กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วรีเฟรชหน้าเว็บอีกครั้ง");
+                return;
+            }
+
             statusBadge.textContent = `กำลังอ่านไฟล์: ${file.name}`;
 
             const reader = new FileReader();
