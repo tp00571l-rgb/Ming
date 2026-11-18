@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Step 1: โครงร่างหลักอ่านไฟล์ Excel</title>
+    <!-- ฟอนต์ภาษาไทยอ่านง่าย -->
+    <link href="https://googleapis.com" rel="stylesheet">
+    <!-- Tailwind CSS สำหรับตกแต่งหน้าเว็บให้เป็นทางการ -->
+    <script src="https://jsdelivr.net"></script>
+    <!-- SheetJS (xlsx) สำหรับอ่านไฟล์ Excel ในเบราว์เซอร์ -->
+    <script src="https://cloudflare.com"></script>
+    <style>
+        body { font-family: 'Sarabun', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <!-- ส่วนหัวของหน้าเว็บ -->
+        <header class="bg-slate-900 text-white p-6 rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-xl font-bold">ระบบจัดการข้อมูลใบงาน (โครงร่างหลัก Step 1)</h1>
+                <p class="text-xs text-slate-400 mt-1">ทดสอบการนำเข้าไฟล์ Excel และแสดงผลตารางข้อมูลดิบทั้งหมด</p>
+            </div>
+            <div id="statusBadge" class="text-xs bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full text-slate-300">
+                สถานะ: รอการนำเข้าไฟล์
+            </div>
+        </header>
+
+        <!-- กล่องอัปโหลดไฟล์ Excel -->
+        <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <label class="block text-sm font-bold text-slate-700 mb-3">เลือกไฟล์ Excel (.xlsx, .xls) หรือ CSV</label>
+            <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" 
+                   class="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-5 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer border border-slate-300 rounded-lg bg-slate-50"/>
+        </section>
+
+        <!-- พื้นที่สำหรับวางปุ่มคำสั่งเพิ่มเติมในอนาคต (Step 3) -->
+        <div id="actionToolbar" class="hidden flex flex-wrap gap-3">
+            <!-- เตรียมพื้นที่ไว้สำหรับใส่ปุ่มในขั้นตอนถัดไป -->
+        </div>
+
+        <!-- ตารางแสดงผลข้อมูลดิบ -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                <h2 class="font-bold text-slate-800 text-sm">ตารางข้อมูลจากไฟล์</h2>
+                <span id="rowCount" class="text-xs font-semibold text-blue-700 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+                    ทั้งหมด 0 แถว
+                </span>
+            </div>
+            
+            <div class="overflow-x-auto max-h-[600px]">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr id="tableHeader" class="bg-slate-100 text-slate-700 text-xs font-bold uppercase border-b border-slate-200 sticky top-0">
+                            <!-- หัวตารางจะขึ้นตรงนี้อัตโนมัติ -->
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-slate-200 text-slate-700">
+                        <tr>
+                            <td class="text-center py-12 text-slate-400">กรุณาเลือกไฟล์ Excel ด้านบนเพื่อแสดงข้อมูล</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // ตัวแปรส่วนกลางสำหรับเก็บข้อมูลที่อ่านได้จาก Excel
+        let rawData = [];
+
+        // ดักจับเหตุการณ์เมื่อผู้ใช้เลือกไฟล์
+        document.getElementById("excelFileInput").addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // อัปเดตป้ายสถานะ
+            document.getElementById("statusBadge").innerText = `กำลังอ่านไฟล์: ${file.name}`;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                // อ่านไฟล์ด้วย SheetJS
+                const workbook = XLSX.read(data, { type: "array" });
+                // เลือกแผ่นงาน (Sheet) แรกสุด
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                // แปลงข้อมูลทั้งหมดเป็น JSON Array (เก็บค่าว่างเป็น "")
+                rawData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                document.getElementById("statusBadge").innerText = `โหลดสำเร็จ: ${file.name} (ชีต: ${firstSheetName})`;
+                renderRawTable(rawData);
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // ฟังก์ชันวาดตารางแสดงผล
+        function renderRawTable(dataList) {
+            const thead = document.getElementById("tableHeader");
+            const tbody = document.getElementById("tableBody");
+            const countBadge = document.getElementById("rowCount");
+
+            thead.innerHTML = "";
+            tbody.innerHTML = "";
+
+            if (dataList.length === 0) {
+                tbody.innerHTML = `<tr><td class="text-center py-12 text-slate-400">ไม่พบข้อมูลในไฟล์นี้</td></tr>`;
+                countBadge.innerText = "ทั้งหมด 0 แถว";
+                return;
+            }
+
+            // 1. ดึงรายชื่อหัวตารางทั้งหมดจากแถวแรก
+            const headers = Object.keys(dataList[0]);
+
+            // 2. สร้างหัวตาราง (ใส่คอลัมน์ลำดับที่ไว้หน้าสุด)
+            thead.innerHTML += `<th class="px-4 py-3 whitespace-nowrap bg-slate-200/70 w-12 text-center">#</th>`;
+            headers.forEach(header => {
+                thead.innerHTML += `<th class="px-4 py-3 whitespace-nowrap">${header}</th>`;
+            });
+
+            // 3. วนลูปสร้างข้อมูลทีละแถว
+            dataList.forEach((row, index) => {
+                let tr = `<tr class="hover:bg-blue-50/50 transition-colors">`;
+                tr += `<td class="px-4 py-2.5 text-center text-xs text-slate-400 font-medium bg-slate-50/50">${index + 1}</td>`;
+                
+                headers.forEach(header => {
+                    const cellValue = row[header] !== "" ? row[header] : "-";
+                    tr += `<td class="px-4 py-2.5 whitespace-nowrap">${cellValue}</td>`;
+                });
+                
+                tr += `</tr>`;
+                tbody.innerHTML += tr;
+            });
+
+            countBadge.innerText = `ทั้งหมด ${dataList.length} แถว`;
+        }
+    </script>
+</body>
+</html>
