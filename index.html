@@ -717,15 +717,23 @@
                             "text/plain": textBlob
                         })
                     ]);
-                    showToast("คัดลอกตารางตามงานเรียบร้อยแล้ว (วางใน Excel/Teams/แชทได้ทันที)");
+                    showToast("คัดลอกตารางตามงานเรียบร้อยแล้ว (วางใน Teams / Excel / LINE ได้ทันที)");
                     return;
                 }
             } catch {
                 // fallback ด้านล่าง
             }
 
-            // Fallback: คัดลอกตาราง HTML ผ่าน selection ของ DOM
+            // Fallback: ใช้ copy event เพื่อส่งทั้ง text/html (สำหรับ Teams/Excel) และ text/plain (สำหรับ LINE)
             try {
+                const onCopy = (e) => {
+                    if (e.clipboardData) {
+                        e.preventDefault();
+                        e.clipboardData.setData("text/html", htmlTable);
+                        e.clipboardData.setData("text/plain", plainTsv);
+                    }
+                };
+                document.addEventListener("copy", onCopy, true);
                 const container = document.createElement("div");
                 container.style.position = "fixed";
                 container.style.left = "-9999px";
@@ -736,13 +744,18 @@
                 const sel = window.getSelection();
                 sel.removeAllRanges();
                 sel.addRange(range);
-                document.execCommand("copy");
+                const ok = document.execCommand("copy");
                 sel.removeAllRanges();
                 document.body.removeChild(container);
-                showToast("คัดลอกตารางตามงานเรียบร้อยแล้ว");
+                document.removeEventListener("copy", onCopy, true);
+                if (ok) {
+                    showToast("คัดลอกตารางตามงานเรียบร้อยแล้ว (วางใน Teams / Excel / LINE ได้ทันที)");
+                    return;
+                }
             } catch {
-                await copyPlainText(plainTsv);
+                // fallback ด้านล่าง
             }
+            await copyPlainText(plainTsv);
         }
 
         function showError(title, msg) {
@@ -1941,7 +1954,6 @@
                 slotGroups.get(key).push(job);
             });
 
-            const cellStyle = "border:1px solid #475569;padding:6px 10px;vertical-align:middle;text-align:left;";
             const headText = "เน้นย้ำ งานซ่อมบำรุง (MA) ทีมช่างดำเนินการปิดงานบน LMR และ SOA ภายใน Slot หลังแก้ไขปัญหาเรียบร้อยแล้ว";
             const footerLines = [
                 "- หากทีมช่างแก้ไขและลูกค้ามีการ onlineหลังจากเข้าปฏิบัติงานควรปิดงานทันที",
@@ -1949,83 +1961,107 @@
                 "- กรณีหน่วยงานตรวจสอบไม่พบการปิดงานภายในSlot และภายในวัน หลังจากการ Onlineของลูกค้า  โดยที่ไม่มีแจ้งกลับมาถึงสาเหตุที่ปิดงานไม่ได้จะมีการปรับตามนโยบายบริษัทฯ อ้างอิง Re-Deploy I1-25650605"
             ];
 
+            const bannerStyle = "border:1px solid #1e3a8a;background-color:#1e3a8a;color:#ffffff;padding:10px 12px;font-weight:700;font-size:13px;text-align:left;vertical-align:middle;";
+            const thStyle = "border:1px solid #94a3b8;background-color:#dbeafe;color:#1e293b;padding:8px 12px;font-weight:700;font-size:12px;text-align:left;vertical-align:middle;white-space:nowrap;";
+            const slotStyle = "border:1px solid #94a3b8;background-color:#fef3c7;color:#92400e;padding:7px 12px;font-weight:700;font-size:12.5px;text-align:left;vertical-align:middle;";
+            const footerStyle = "border:1px solid #cbd5e1;background-color:#f1f5f9;color:#334155;padding:6px 12px;font-size:12px;text-align:left;vertical-align:middle;";
+
             const htmlRows = [];
-            const tsvRows = [];
-            const emptyCellsHtml = (count) => `<td style="${cellStyle}"></td>`.repeat(count);
-            const trailingTabs = "\t".repeat(colCount - 1);
+            const lineSections = [headText, ""];
 
-            // แถวหัวข้อใหญ่บนสุด
-            if (colCount >= 4) {
-                htmlRows.push(
-                    `<tr><td colspan="${colCount - 1}" style="${cellStyle}font-weight:700;">${escapeHtml(headText)}</td><td style="${cellStyle}"></td></tr>`
-                );
-            } else {
-                htmlRows.push(
-                    `<tr><td colspan="${colCount}" style="${cellStyle}font-weight:700;">${escapeHtml(headText)}</td></tr>`
-                );
+            // 1. แถวหัวข้อใหญ่บนสุด (ผสานเต็มความกว้างตาราง)
+            htmlRows.push(
+                `<tr><td colspan="${colCount}" style="${bannerStyle}">${escapeHtml(headText)}</td></tr>`
+            );
+
+            // 2. แถวหัวคอลัมน์เพื่อให้อ่านง่ายและช่วยจัดความกว้างคอลัมน์ใน Teams/Excel
+            const headers = [
+                { label: "Request No.", minWidth: "145px" },
+                { label: "Access Number", minWidth: "120px" },
+                { label: "ช่างผู้รับผิดชอบ", minWidth: "220px" }
+            ];
+            if (showTeamCol) {
+                headers.push({ label: "ทีมช่าง (Contract Team)", minWidth: "260px" });
             }
-            tsvRows.push(`${headText}${trailingTabs}`);
+            if (showDateCol) {
+                headers.push({ label: "วันนัดหมาย", minWidth: "125px" });
+            }
+            htmlRows.push(
+                `<tr>${headers.map((h) => `<th style="${thStyle}min-width:${h.minWidth};">${escapeHtml(h.label)}</th>`).join("")}</tr>`
+            );
 
-            // แถวแยกตามแต่ละ Slot
+            // 3. แถวแยกตามแต่ละ Slot
             slotGroups.forEach((groupJobs, slotLabel) => {
-                const slotHtml = escapeHtml(slotLabel).replace(/\n/g, "<br>");
-                const slotPlain = slotLabel.replace(/\n/g, " ");
+                const cleanSlotTitle = slotLabel.replace(/\*/g, "").replace(/\n/g, " ").trim();
 
                 htmlRows.push(
-                    `<tr><td style="${cellStyle}font-weight:700;white-space:nowrap;">${slotHtml}</td>${emptyCellsHtml(colCount - 1)}</tr>`
+                    `<tr><td colspan="${colCount}" style="${slotStyle}">${escapeHtml(cleanSlotTitle)} (${groupJobs.length} งาน)</td></tr>`
                 );
-                tsvRows.push(`${slotPlain}${trailingTabs}`);
 
-                groupJobs.forEach((j) => {
+                lineSections.push(`📌 ${cleanSlotTitle} (${groupJobs.length} งาน)`);
+                lineSections.push("━━━━━━━━━━━━━━");
+
+                groupJobs.forEach((j, jobIdx) => {
                     const req = j.requestNo || "-";
                     const acc = j.accessNumber || "-";
                     const eng = j.fieldEngineer || "-";
                     const pastToday = isJobPastToday(j, todayDate);
+                    const rowBg = jobIdx % 2 === 0 ? "#ffffff" : "#f8fafc";
+                    const baseTdStyle = `border:1px solid #cbd5e1;background-color:${rowBg};padding:8px 12px;vertical-align:top;text-align:left;`;
 
                     const cols = [
-                        { val: req, nowrap: true },
-                        { val: acc, nowrap: true },
-                        { val: eng, nowrap: false }
+                        { val: req, style: `${baseTdStyle}white-space:nowrap;min-width:145px;font-weight:700;color:#1d4ed8;` },
+                        { val: acc, style: `${baseTdStyle}white-space:nowrap;min-width:120px;color:#0f172a;` },
+                        { val: eng, style: `${baseTdStyle}min-width:220px;color:#0f172a;` }
                     ];
 
+                    let teamVal = "";
                     if (showTeamCol) {
-                        const team = shouldShowTeamForJob(j)
+                        teamVal = shouldShowTeamForJob(j)
                             ? (j.contractTeamRaw || j.contractTeamShort || "-")
                             : "";
-                        cols.push({ val: team, nowrap: false });
+                        cols.push({ val: teamVal, style: `${baseTdStyle}min-width:260px;color:#334155;font-size:12px;` });
                     }
 
+                    let planVal = "";
                     if (showDateCol) {
-                        const plan = isBkkRegionJob(j)
+                        planVal = isBkkRegionJob(j)
                             ? (pastToday ? (j.planThaiDateOnly || "-") : "")
                             : (j.planThaiTableDisplay || "-");
-                        cols.push({ val: plan, nowrap: true });
+                        const dateColor = planVal ? "#b91c1c;font-weight:600" : "#64748b";
+                        cols.push({ val: planVal, style: `${baseTdStyle}white-space:nowrap;min-width:125px;color:${dateColor};` });
                     }
 
                     const tdsHtml = cols
-                        .map((c) => `<td style="${cellStyle}${c.nowrap ? "white-space:nowrap;" : ""}">${escapeHtml(c.val)}</td>`)
+                        .map((c) => `<td style="${c.style}">${escapeHtml(c.val)}</td>`)
                         .join("");
 
                     htmlRows.push(`<tr>${tdsHtml}</tr>`);
-                    tsvRows.push(cols.map((c) => c.val).join("\t"));
-                });
 
-                htmlRows.push(
-                    `<tr><td style="${cellStyle}">------------</td>${emptyCellsHtml(colCount - 1)}</tr>`
-                );
-                tsvRows.push(`------------${trailingTabs}`);
+                    // รูปแบบข้อความสำหรับวางใน LINE ให้อ่านง่าย แยกบรรทัดและเว้นช่วงชัดเจน
+                    lineSections.push(`${jobIdx + 1}. ${req} | ${acc}`);
+                    lineSections.push(`   ช่าง: ${eng}`);
+                    if (showTeamCol && teamVal) {
+                        lineSections.push(`   ทีม: ${teamVal}`);
+                    }
+                    if (showDateCol && planVal) {
+                        lineSections.push(`   นัด: ${planVal}`);
+                    }
+                    lineSections.push("");
+                });
             });
 
-            // 3 แถวหมายเหตุด้านล่าง
+            // 4. แถวหมายเหตุด้านล่าง (คงข้อความเดิมครบถ้วน)
+            lineSections.push("━━━━━━━━━━━━━━");
             footerLines.forEach((line) => {
                 htmlRows.push(
-                    `<tr><td colspan="${colCount}" style="${cellStyle}">${escapeHtml(line)}</td></tr>`
+                    `<tr><td colspan="${colCount}" style="${footerStyle}">${escapeHtml(line)}</td></tr>`
                 );
-                tsvRows.push(line);
+                lineSections.push(line);
             });
 
-            const htmlTable = `<table style="border-collapse:collapse;font-family:Sarabun,sans-serif;font-size:13px;"><tbody>${htmlRows.join("")}</tbody></table>`;
-            const plainTsv = tsvRows.join("\n");
+            const htmlTable = `<table cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-family:'Sarabun',Arial,sans-serif;font-size:13px;line-height:1.45;color:#0f172a;background-color:#ffffff;"><tbody>${htmlRows.join("")}</tbody></table>`;
+            const plainTsv = lineSections.join("\n");
 
             return { htmlTable, plainTsv };
         }
