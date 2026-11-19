@@ -3,19 +3,16 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ระบบจัดการข้อมูลใบงาน — นำเข้าและตรวจสอบไฟล์ Excel</title>
-    <meta name="description" content="ระบบนำเข้าและตรวจสอบความถูกต้องของข้อมูลใบงานจากไฟล์ Excel (.xlsx, .xls) และ CSV" />
-    <meta property="og:title" content="ระบบจัดการข้อมูลใบงาน — นำเข้าและตรวจสอบไฟล์ Excel" />
-    <meta property="og:description" content="ระบบนำเข้าและตรวจสอบความถูกต้องของข้อมูลใบงานจากไฟล์ Excel (.xlsx, .xls) และ CSV" />
+    <title>ระบบติดตามปิดงานทีมช่าง — แปลงและคัดกรองข้อมูลใบงาน</title>
+    <meta name="description" content="ระบบแปลงข้อมูลใบงานจาก Excel/TSV/CSV เพื่อคัดกรอง Task Status ที่ยังไม่ Completed แยกงาน NEW ที่ยังไม่ถึงวันนัดหมาย และติดตามปิดงานทีมช่าง" />
+    <meta property="og:title" content="ระบบติดตามปิดงานทีมช่าง — แปลงและคัดกรองข้อมูลใบงาน" />
+    <meta property="og:description" content="ระบบแปลงข้อมูลใบงานจาก Excel/TSV/CSV เพื่อคัดกรอง Task Status ที่ยังไม่ Completed แยกงาน NEW ที่ยังไม่ถึงวันนัดหมาย และติดตามปิดงานทีมช่าง" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
-    <!-- ฟอนต์ภาษาไทย Sarabun และ JetBrains Mono สำหรับตัวเลขในตาราง -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <!-- Tailwind CSS v4 Browser CDN (ทำงานได้ทันทีบน GitHub Pages โดยไม่ต้อง Build) -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- SheetJS (xlsx) สำหรับอ่านไฟล์ Excel ในเบราว์เซอร์ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         html {
@@ -33,56 +30,45 @@
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
 
     <!-- Top Navigation Bar: โครงสร้าง 3 โซนแถวเดียว -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-20">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-8">
             <a href="#top" class="text-lg font-bold tracking-tight text-slate-900 whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded">
-                ระบบจัดการข้อมูลใบงาน
+                ระบบติดตามปิดงานทีมช่าง
             </a>
 
             <nav aria-label="เมนูหลัก" class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
-                <a href="#import-section" class="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0">นำเข้าไฟล์</a>
-                <a href="#table-section" class="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0">ตารางข้อมูลดิบ</a>
+                <a href="#import-section" class="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0">นำเข้าข้อมูล</a>
+                <a href="#team-summary-section" class="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0">สรุปรายทีมช่าง</a>
+                <a href="#workorder-table-section" class="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0">รายการติดตามงาน</a>
             </nav>
-
-            <div class="flex items-center gap-3 shrink-0">
-                <button type="button" id="headerUploadBtn"
-                        class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2">
-                    <svg width="16" height="16" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                        <polyline points="17 8 12 3 7 8" />
-                        <line x1="12" y1="3" x2="12" y2="15" />
-                    </svg>
-                    <span>เลือกไฟล์ Excel</span>
-                </button>
-            </div>
         </div>
     </header>
 
     <main id="top" class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 flex-1">
 
-        <!-- ส่วนหัวหน้าเพจ + ข้อมูลสถานะแบบเรียบ -->
-        <section class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <!-- ส่วนหัวหน้าเพจ + สถานะไฟล์แบบเรียบ -->
+        <section class="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
             <div class="space-y-1">
                 <h1 class="text-2xl font-bold tracking-tight text-slate-900 [text-wrap:balance]">
-                    โครงร่างหลักนำเข้าไฟล์ Excel
+                    แปลงข้อมูลใบงานเพื่อตามปิดงานทีมช่าง
                 </h1>
                 <p class="text-sm text-slate-600">
-                    อ่านไฟล์ .xlsx, .xls หรือ .csv ในเบราว์เซอร์โดยตรง เพื่อตรวจสอบโครงสร้างและข้อมูลดิบทั้งหมด
+                    คัดกรองงานกลุ่ม <span class="font-medium text-slate-800">Scheduled + Processing</span> ที่เลยวันตัดรอบหรือเลยช่วงเวลา Slot ในวันปัจจุบันแล้ว และแยกกลุ่ม <span class="font-medium text-slate-800">Completed + New</span> (งานที่ปิดแล้วหรือยังไม่เลยกำหนด)
                 </p>
             </div>
 
             <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                <span id="statusBadge" class="font-medium text-slate-700">สถานะ: รอการนำเข้าไฟล์</span>
+                <span id="statusBadge" class="font-medium text-slate-700">สถานะ: รอการนำเข้าข้อมูล</span>
                 <span aria-hidden="true">·</span>
-                <span>ประมวลผลฝั่งเบราว์เซอร์</span>
+                <span>รองรับ .xlsx, .xls, .csv, .txt (TSV)</span>
             </div>
         </section>
 
-        <!-- กล่องอัปโหลดไฟล์แบบลากวาง (Dropzone) -->
-        <section id="import-section" aria-label="อัปโหลดไฟล์ข้อมูล">
-            <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" hidden class="sr-only" />
+        <!-- กล่องนำเข้าข้อมูล: รองรับอัปโหลดไฟล์ + วางข้อมูลจาก Excel -->
+        <section id="import-section" aria-label="นำเข้าข้อมูลใบงาน" class="space-y-3">
+            <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv, .tsv, .txt" multiple hidden class="sr-only" />
             <div id="dropZone"
-                 class="bg-white border border-slate-200 rounded-xl p-6 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-300">
+                 class="bg-white border border-slate-200 rounded-xl p-6 transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:border-slate-300">
                 <div class="flex items-start sm:items-center gap-4">
                     <div class="w-11 h-11 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 shrink-0">
                         <svg width="20" height="20" class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -96,69 +82,254 @@
                     </div>
                     <div>
                         <label for="excelFileInput" class="block text-sm font-semibold text-slate-900 cursor-pointer">
-                            เลือกไฟล์ Excel (.xlsx, .xls) หรือ CSV
+                            อัปโหลดไฟล์ใบงาน (.xlsx, .xls, .csv, .txt) หรือวางข้อมูลจาก Excel
                         </label>
                         <p id="fileMetaText" class="text-xs text-slate-500 mt-0.5">
-                            คลิกเลือกไฟล์จากเครื่อง หรือลากไฟล์มาวางภายในกรอบนี้
+                            เลือกไฟล์จากเครื่องได้หลายไฟล์พร้อมกัน (ระบบจะรวมเป็นชุดเดียวก่อนแปลงข้อมูล) ลากมาวาง หรือคัดลอกจาก Excel มาวางได้ทันที
                         </p>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2 shrink-0">
+                <div class="flex flex-wrap items-center gap-2 shrink-0">
                     <button type="button" id="selectFileBtn"
-                            class="px-4 py-2 text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2">
+                            class="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-100 border border-blue-300 hover:bg-blue-200 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
                         เลือกไฟล์จากเครื่อง
                     </button>
+                    <button type="button" id="togglePasteBtn"
+                            class="px-4 py-2 text-sm font-medium text-indigo-900 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+                        วางข้อมูลจาก Excel
+                    </button>
                     <button type="button" id="resetDataBtn"
-                            class="hidden px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600">
+                            class="hidden px-4 py-2 text-sm font-medium text-rose-800 bg-rose-50 border border-rose-200 hover:bg-rose-100 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer">
                         ล้างข้อมูล
                     </button>
                 </div>
             </div>
-        </section>
 
-        <!-- แถบเครื่องมือจัดการข้อมูล (แสดงเมื่อมีข้อมูลแล้ว และพร้อมต่อยอด Step 3) -->
-        <section id="actionToolbar" aria-label="เครื่องมือจัดการตาราง"
-                 class="hidden flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-xl p-4">
-            <div class="flex flex-wrap items-center gap-2" id="sheetTabsContainer">
-                <!-- ปุ่มสลับชีต (จะสร้างอัตโนมัติเมื่อไฟล์มีหลายชีต) -->
-            </div>
-
-            <div class="flex flex-wrap items-center gap-3">
-                <div class="relative min-w-[220px] flex-1 sm:flex-initial">
-                    <svg width="16" height="16" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <circle cx="11" cy="11" r="8" />
-                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                    </svg>
-                    <input type="search" id="tableSearchInput" placeholder="ค้นหาในตาราง..." aria-label="ค้นหาข้อมูลในตาราง"
-                           class="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white" />
+            <!-- กล่องวางข้อมูลแบบ Copy-Paste จาก Excel (เปิด-ปิดได้) -->
+            <div id="pastePanel" class="hidden bg-white border border-slate-200 rounded-xl p-5 space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h2 class="text-sm font-semibold text-slate-900">วางข้อมูลตารางจาก Excel หรือไฟล์ .txt (Tab-separated)</h2>
+                        <p class="text-xs text-slate-500">ต้องมีแถวหัวตารางบรรทัดแรก เช่น Product Owner, Request No., Task Status, Plan Arrival Time</p>
+                    </div>
+                    <button type="button" id="closePasteBtn" class="px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 border border-slate-300 hover:bg-slate-200 rounded-lg self-start sm:self-center cursor-pointer transition-colors">
+                        ปิดหน้าต่างวางข้อมูล
+                    </button>
+                </div>
+                <textarea id="pasteTextarea" rows="6" placeholder="วางข้อมูลที่คัดลอกจาก Excel ที่นี่ (Ctrl+V)..."
+                          class="w-full p-3 text-xs font-mono-tabular bg-slate-50 border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"></textarea>
+                <div class="flex items-center justify-end gap-2">
+                    <button type="button" id="processPasteBtn"
+                            class="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-100 border border-blue-300 hover:bg-blue-200 rounded-lg transition-colors whitespace-nowrap cursor-pointer">
+                        แปลงข้อมูลที่วาง
+                    </button>
                 </div>
             </div>
         </section>
 
-        <!-- ตารางแสดงผลข้อมูลดิบ -->
-        <section id="table-section" class="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex flex-wrap justify-between items-center gap-2">
-                <h2 class="font-bold text-slate-900 text-sm">ตารางข้อมูลจากไฟล์</h2>
-                <div class="flex items-center gap-2 text-xs text-slate-600 font-mono-tabular">
-                    <span id="rowCount">ทั้งหมด 0 แถว</span>
-                    <span id="columnCountSeparator" class="hidden" aria-hidden="true">·</span>
-                    <span id="columnCount" class="hidden">0 คอลัมน์</span>
+        <!-- แถบแจ้งเตือนข้อผิดพลาด (ซ่อนเมื่อไม่มี Error) -->
+        <div id="errorAlert" role="alert" class="hidden bg-red-50 border border-red-200 rounded-xl p-4 items-start gap-3 text-sm text-red-800">
+            <svg width="20" height="20" class="w-5 h-5 text-red-600 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <div class="flex-1">
+                <p class="font-semibold" id="errorTitle">ไม่สามารถอ่านข้อมูลได้</p>
+                <p class="text-xs text-red-700 mt-0.5" id="errorMessage"></p>
+            </div>
+        </div>
+
+        <!-- สรุปตัวเลขภาพรวม (KPI Strip 4 ช่อง) -->
+        <section id="kpiSection" aria-label="สรุปสถานะใบงาน" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white border border-slate-200 rounded-xl p-5 space-y-1">
+                <p class="text-xs font-medium text-slate-500">ต้องตามปิดงาน (Scheduled + Processing)</p>
+                <p id="kpiFollowUp" class="text-2xl font-bold text-red-600 font-mono-tabular">0</p>
+                <p id="kpiFollowUpSub" class="text-xs text-slate-500">Processing 0 · Scheduled 0</p>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-xl p-5 space-y-1">
+                <p class="text-xs font-medium text-slate-500">Completed + New (ยังไม่เลยวันตัดรอบ/ปิดแล้ว)</p>
+                <p id="kpiCompletedNew" class="text-2xl font-bold text-blue-600 font-mono-tabular">0</p>
+                <p id="kpiCompletedNewSub" class="text-xs text-slate-500">Completed 0 · New 0</p>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-xl p-5 space-y-1">
+                <p class="text-xs font-medium text-slate-500">ใบงานทั้งหมดในไฟล์</p>
+                <p id="kpiTotal" class="text-2xl font-bold text-slate-900 font-mono-tabular">0</p>
+                <p class="text-xs text-slate-500">รวมทุกสถานะหลังนำเข้า</p>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-xl p-5 space-y-1">
+                <p class="text-xs font-medium text-slate-500">ทีมช่างที่มีงานค้างต้องตาม</p>
+                <p id="kpiTeams" class="text-2xl font-bold text-slate-900 font-mono-tabular">0</p>
+                <p class="text-xs text-slate-500">จำนวน Contract Team ในคิวตามปิด</p>
+            </div>
+        </section>
+
+        <!-- ส่วนสรุปงานค้างรายทีมช่าง (มีช่องค้นหาเฉพาะทีม + ปุ่มคัดลอกเป็นตาราง) -->
+        <section id="team-summary-section" class="hidden bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">สรุปรายทีมช่างที่ต้องตามปิดงาน</h2>
+                    <p class="text-xs text-slate-500">คลิกชื่อทีมเพื่อกรองรายการ หรือกด "คัดลอกตามทีม" เพื่อคัดลอกเป็นตารางส่งแจ้งทีมช่าง</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="relative min-w-[260px] flex-1 sm:flex-initial">
+                        <svg width="16" height="16" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                        <input type="search" id="teamSummarySearchInput" placeholder="ค้นหา Request, Access, ช่าง, ทีม, เบอร์..." aria-label="ค้นหา Request, Access, ช่าง, ทีม ในตารางสรุปรายทีม"
+                               class="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                    </div>
+                    <select id="teamSummaryRegionFilter" aria-label="เลือกกรองภูมิภาคในตารางสรุปรายทีมช่าง"
+                            class="px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600">
+                        <option value="">ทุกภูมิภาค (Region)</option>
+                    </select>
+                    <select id="teamSummaryFilterSelect" aria-label="เลือกกรองทีมช่าง"
+                            class="px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 max-w-[240px] focus:outline-none focus:ring-2 focus:ring-blue-600">
+                        <option value="">ทุกทีมช่าง (แสดงทั้งหมด)</option>
+                    </select>
+                    <button type="button" id="clearTeamFilterBtn" class="hidden px-3 py-1.5 text-xs font-semibold text-amber-900 bg-amber-100 border border-amber-300 hover:bg-amber-200 rounded-lg whitespace-nowrap cursor-pointer transition-colors">
+                        ล้างตัวกรองทีม
+                    </button>
                 </div>
             </div>
-
-            <div class="overflow-x-auto max-h-[600px]">
+            <div class="overflow-x-auto max-h-[320px]">
                 <table class="w-full text-left border-collapse text-sm">
-                    <thead class="sticky top-0 z-10 bg-slate-100">
-                        <tr id="tableHeader" class="text-slate-700 text-xs font-bold border-b border-slate-200">
-                            <!-- หัวตารางจะขึ้นตรงนี้อัตโนมัติ -->
+                    <thead class="sticky top-0 z-10 bg-slate-100 border-b border-slate-200 text-xs font-bold text-slate-700">
+                        <tr>
+                            <th class="px-4 py-2.5 whitespace-nowrap">ทีมช่าง (Contract Team)</th>
+                            <th class="px-4 py-2.5 whitespace-nowrap">ภูมิภาค</th>
+                            <th class="px-4 py-2.5 whitespace-nowrap text-right">ต้องตามปิด</th>
+                            <th class="px-4 py-2.5 whitespace-nowrap text-right">Processing</th>
+                            <th class="px-4 py-2.5 whitespace-nowrap text-right">Scheduled</th>
+                            <th class="px-4 py-2.5 whitespace-nowrap">งานค้างเก่าสุด</th>
+                            <th class="px-4 py-2.5 whitespace-nowrap text-right">ดำเนินการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teamSummaryBody" class="divide-y divide-slate-200 text-slate-700"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- แถบเครื่องมือกรองข้อมูล + จุดตัดเวลานัดหมาย + ส่งออกรายงาน -->
+        <section id="actionToolbar" aria-label="ตัวกรองและส่งออกข้อมูล"
+                 class="hidden flex-col gap-4 bg-white border border-slate-200 rounded-xl p-4">
+
+            <!-- แถวที่ 1: แท็บสถานะแบบรวม (Scheduled + Processing และ Completed + New) + วันที่อ้างอิง -->
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-lg" role="tablist" aria-label="กลุ่มสถานะงาน">
+                    <button type="button" data-bucket="followup" class="bucket-tab px-3 py-1.5 text-xs font-semibold rounded-md bg-blue-100 text-blue-900 border border-blue-300 shadow-xs whitespace-nowrap cursor-pointer transition-colors">
+                        Scheduled + Processing (<span class="font-mono-tabular" id="tabCountFollowup">0</span>)
+                    </button>
+                    <button type="button" data-bucket="completed_new" class="bucket-tab px-3 py-1.5 text-xs font-medium rounded-md bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-200 whitespace-nowrap cursor-pointer transition-colors">
+                        Completed + New (<span class="font-mono-tabular" id="tabCountCompletedNew">0</span>)
+                    </button>
+                    <button type="button" data-bucket="all" class="bucket-tab px-3 py-1.5 text-xs font-medium rounded-md bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-200 whitespace-nowrap cursor-pointer transition-colors">
+                        ทั้งหมด (<span class="font-mono-tabular" id="tabCountAll">0</span>)
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <label for="cutoffInput" class="text-xs font-medium text-slate-600 whitespace-nowrap">วันที่อ้างอิงตัดรอบงาน NEW:</label>
+                    <input type="date" id="cutoffInput"
+                           class="px-2.5 py-1.5 text-xs font-mono-tabular bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white" />
+                    <button type="button" id="setNowCutoffBtn"
+                            class="px-3 py-1.5 text-xs font-medium text-sky-900 bg-sky-50 border border-sky-200 hover:bg-sky-100 rounded-lg whitespace-nowrap cursor-pointer transition-colors">
+                        ใช้วันนี้
+                    </button>
+                </div>
+            </div>
+
+            <!-- แถวที่ 2: ตัวกรองย่อย (ค้นหา, ภูมิภาค, Product, กลุ่มสถานะ, สลับชีต, ส่งออก) -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                <div class="flex flex-wrap items-center gap-2 flex-1">
+                    <div class="relative min-w-[220px] flex-1 sm:flex-initial">
+                        <svg width="16" height="16" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                        <input type="search" id="tableSearchInput" placeholder="ค้นหา Request, Access, ช่าง, ทีม, เบอร์..." aria-label="ค้นหาข้อมูลในตาราง"
+                               class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white" />
+                    </div>
+
+                    <select id="regionFilter" aria-label="กรองตามภูมิภาค"
+                            class="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600">
+                        <option value="">ทุกภูมิภาค (Region)</option>
+                    </select>
+
+                    <select id="ownerFilter" aria-label="กรองตาม Product Owner"
+                            class="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600">
+                        <option value="">ทุก Product</option>
+                    </select>
+
+                    <select id="taskStatusFilter" aria-label="กรองตามกลุ่มสถานะ Task Status"
+                            class="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600">
+                        <option value="">ทุกกลุ่มสถานะ</option>
+                        <option value="scheduled_processing">Scheduled + Processing</option>
+                        <option value="completed_new">Completed + New</option>
+                    </select>
+
+                    <select id="teamScopeFilter" aria-label="กรองกลุ่มทีมรีแลค"
+                            class="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600">
+                        <option value="">ทุกทีม (รวมทีมรีแลค)</option>
+                        <option value="relax">ทีมรีแลค</option>
+                        <option value="other">ทีมอื่น ๆ (ไม่ใช่ทีมรีแลค)</option>
+                    </select>
+
+                    <div id="sheetSelectWrapper" class="hidden items-center gap-1.5">
+                        <span class="text-xs text-slate-500">ชีต:</span>
+                        <select id="sheetSelect" aria-label="เลือกแผ่นงาน"
+                                class="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600"></select>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 shrink-0">
+                    <button type="button" id="copyAllVisibleBtn"
+                            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-indigo-900 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 rounded-lg transition-colors whitespace-nowrap cursor-pointer">
+                        คัดลอกตารางตามรายการที่แสดง
+                    </button>
+                    <button type="button" id="exportExcelBtn"
+                            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-emerald-900 bg-emerald-100 border border-emerald-300 hover:bg-emerald-200 rounded-lg transition-colors whitespace-nowrap cursor-pointer">
+                        ส่งออก Excel (.xlsx)
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ตารางรายการใบงานที่แปลงแล้ว (เรียงคอลัมน์ตามที่กำหนด) -->
+        <section id="workorder-table-section" class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex flex-wrap justify-between items-center gap-2">
+                <div>
+                    <h2 id="tableSectionTitle" class="font-bold text-slate-900 text-sm">ตารางงานที่ต้องตามปิด (Task Status ยังไม่ Completed และเลยวันที่อ้างอิงตัดรอบแล้ว)</h2>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-slate-600 font-mono-tabular">
+                    <span id="rowCount">ทั้งหมด 0 รายการ</span>
+                    <span id="activeTeamBadge" class="hidden text-blue-700 font-semibold"></span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto max-h-[650px]">
+                <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                    <thead class="sticky top-0 z-10 bg-slate-100 border-b border-slate-200 text-slate-700 text-xs font-bold">
+                        <tr>
+                            <th class="px-3 py-3 whitespace-nowrap text-center w-12 font-mono-tabular">#</th>
+                            <th class="px-3 py-3 whitespace-nowrap">สถานะติดตาม</th>
+                            <th class="px-3 py-3 whitespace-nowrap">Request No. / Access</th>
+                            <th class="px-3 py-3 whitespace-nowrap">Task / Processing</th>
+                            <th class="px-3 py-3 whitespace-nowrap">Product / Region</th>
+                            <th class="px-3 py-3 whitespace-nowrap">ทีมช่าง (Contract Team)</th>
+                            <th class="px-3 py-3 whitespace-nowrap">ช่างผู้รับผิดชอบ / เบอร์ติดต่อ</th>
+                            <th class="px-3 py-3 whitespace-nowrap">เวลานัดหมาย (Plan Arrival)</th>
+                            <th class="px-3 py-3 whitespace-nowrap text-right">จัดการ</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody" class="divide-y divide-slate-200 text-slate-700">
                         <tr>
-                            <td class="text-center py-14 px-6 text-slate-500">
-                                <p class="text-sm font-medium text-slate-700">ยังไม่มีข้อมูลที่นำเข้า</p>
-                                <p class="text-xs text-slate-500 mt-1">เลือกไฟล์ Excel หรือ CSV ด้านบนเพื่อแสดงข้อมูลทั้งหมดในตาราง</p>
+                            <td colspan="9" class="text-center py-14 px-6 text-slate-500">
+                                <p class="text-sm font-medium text-slate-700">ยังไม่มีข้อมูลใบงานที่นำเข้า</p>
+                                <p class="text-xs text-slate-500 mt-1">เลือกไฟล์ Excel / .txt (TSV) หรือกด "วางข้อมูลจาก Excel" ด้านบนเพื่อเริ่มแปลงข้อมูล</p>
                             </td>
                         </tr>
                     </tbody>
@@ -168,85 +339,490 @@
 
     </main>
 
-    <script>
-        // ตัวแปรส่วนกลางสำหรับเก็บข้อมูลที่อ่านได้จาก Excel
-        let rawData = [];
-        let currentWorkbook = null;
-        let activeSheetName = "";
+    <!-- หน้าต่างแสดงรายละเอียดใบงานฉบับเต็ม -->
+    <div id="detailModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 p-4 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="bg-white border border-slate-200 rounded-xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between gap-4">
+                <div>
+                    <h3 id="modalTitle" class="text-base font-bold text-slate-900 font-mono-tabular">รายละเอียดใบงาน</h3>
+                    <p id="modalSubtitle" class="text-xs text-slate-500 mt-0.5"></p>
+                </div>
+                <button type="button" id="closeModalBtn" class="px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 border border-slate-300 hover:bg-slate-200 rounded-lg cursor-pointer transition-colors">
+                    ปิด
+                </button>
+            </div>
+            <div id="modalContent" class="p-6 overflow-y-auto space-y-4 text-sm"></div>
+            <div class="px-6 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-2">
+                <button type="button" id="modalCopyBtn" class="px-4 py-2 text-xs font-semibold text-blue-900 bg-blue-100 border border-blue-300 hover:bg-blue-200 rounded-lg cursor-pointer transition-colors">
+                    คัดลอกเป็นตารางใบงานนี้
+                </button>
+            </div>
+        </div>
+    </div>
 
+    <!-- แจ้งเตือนสั้นๆ เมื่อคัดลอกข้อความสำเร็จ -->
+    <div id="toastNotice" class="hidden fixed bottom-5 right-5 z-50 bg-slate-900 text-white text-xs font-medium px-4 py-2.5 rounded-lg shadow-md">
+        คัดลอกข้อความแล้ว
+    </div>
+
+    <script>
+        // ===== สถานะส่วนกลางของแอปพลิเคชัน =====
+        let currentWorkbook = null;
+        let currentFileName = "";
+        let rawRows = [];
+        let transformedJobs = [];
+        let activeBucket = "followup"; // followup (Scheduled+Processing) | completed_new (Completed+New) | all
+        let selectedTeamKey = "";
+        let currentModalJob = null;
+
+        // DOM Elements
         const fileInput = document.getElementById("excelFileInput");
-        const headerUploadBtn = document.getElementById("headerUploadBtn");
         const selectFileBtn = document.getElementById("selectFileBtn");
+        const togglePasteBtn = document.getElementById("togglePasteBtn");
+        const closePasteBtn = document.getElementById("closePasteBtn");
+        const pastePanel = document.getElementById("pastePanel");
+        const pasteTextarea = document.getElementById("pasteTextarea");
+        const processPasteBtn = document.getElementById("processPasteBtn");
         const resetDataBtn = document.getElementById("resetDataBtn");
         const dropZone = document.getElementById("dropZone");
         const statusBadge = document.getElementById("statusBadge");
         const fileMetaText = document.getElementById("fileMetaText");
-        const actionToolbar = document.getElementById("actionToolbar");
-        const sheetTabsContainer = document.getElementById("sheetTabsContainer");
-        const tableSearchInput = document.getElementById("tableSearchInput");
+        const errorAlert = document.getElementById("errorAlert");
+        const errorTitle = document.getElementById("errorTitle");
+        const errorMessage = document.getElementById("errorMessage");
 
+        const kpiSection = document.getElementById("kpiSection");
+        const teamSummarySection = document.getElementById("team-summary-section");
+        const actionToolbar = document.getElementById("actionToolbar");
+        const tableBody = document.getElementById("tableBody");
+        const teamSummaryBody = document.getElementById("teamSummaryBody");
+        const teamSummarySearchInput = document.getElementById("teamSummarySearchInput");
+        const teamSummaryRegionFilter = document.getElementById("teamSummaryRegionFilter");
+        const teamSummaryFilterSelect = document.getElementById("teamSummaryFilterSelect");
+        const clearTeamFilterBtn = document.getElementById("clearTeamFilterBtn");
+        const activeTeamBadge = document.getElementById("activeTeamBadge");
+
+        const cutoffInput = document.getElementById("cutoffInput");
+        const setNowCutoffBtn = document.getElementById("setNowCutoffBtn");
+        const tableSearchInput = document.getElementById("tableSearchInput");
+        const regionFilter = document.getElementById("regionFilter");
+        const ownerFilter = document.getElementById("ownerFilter");
+        const taskStatusFilter = document.getElementById("taskStatusFilter");
+        const teamScopeFilter = document.getElementById("teamScopeFilter");
+        const sheetSelectWrapper = document.getElementById("sheetSelectWrapper");
+        const sheetSelect = document.getElementById("sheetSelect");
+        const copyAllVisibleBtn = document.getElementById("copyAllVisibleBtn");
+        const exportExcelBtn = document.getElementById("exportExcelBtn");
+
+        const detailModal = document.getElementById("detailModal");
+        const closeModalBtn = document.getElementById("closeModalBtn");
+        const modalCopyBtn = document.getElementById("modalCopyBtn");
+        const toastNotice = document.getElementById("toastNotice");
+
+        // ตั้งค่าวันที่อ้างอิงเริ่มต้นเป็นวันที่ปัจจุบันของเครื่อง (เอาแค่วัน ไม่เอาเวลา)
+        function toDateInputValue(date) {
+            const pad = (n) => String(n).padStart(2, "0");
+            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+        }
+        cutoffInput.value = toDateInputValue(new Date());
+
+        function getCutoffDate() {
+            const val = cutoffInput.value;
+            if (!val) {
+                const now = new Date();
+                return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            }
+            const match = val.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (match) {
+                return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+            }
+            const parsed = new Date(val);
+            if (Number.isNaN(parsed.getTime())) {
+                const now = new Date();
+                return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            }
+            return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+        }
+
+        function getDayDiffFromCutoff(cutoffDate, planDate) {
+            const cutoffUtc = Date.UTC(cutoffDate.getFullYear(), cutoffDate.getMonth(), cutoffDate.getDate());
+            const planUtc = Date.UTC(planDate.getFullYear(), planDate.getMonth(), planDate.getDate());
+            return Math.round((cutoffUtc - planUtc) / 86400000);
+        }
+
+        // ===== Toast & Clipboard Helpers (รองรับคัดลอกเป็น HTML Table + TSV) =====
+        let toastTimer = null;
+        function showToast(msg) {
+            toastNotice.textContent = msg;
+            toastNotice.classList.remove("hidden");
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toastNotice.classList.add("hidden");
+            }, 2400);
+        }
+
+        async function copyPlainText(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast("คัดลอกข้อความลงคลิปบอร์ดแล้ว");
+            } catch {
+                const ta = document.createElement("textarea");
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand("copy");
+                document.body.removeChild(ta);
+                showToast("คัดลอกข้อความลงคลิปบอร์ดแล้ว");
+            }
+        }
+
+        async function copyRichTable(htmlTable, plainTsv) {
+            try {
+                if (navigator.clipboard && window.ClipboardItem) {
+                    const htmlBlob = new Blob([htmlTable], { type: "text/html" });
+                    const textBlob = new Blob([plainTsv], { type: "text/plain" });
+                    await navigator.clipboard.write([
+                        new ClipboardItem({
+                            "text/html": htmlBlob,
+                            "text/plain": textBlob
+                        })
+                    ]);
+                    showToast("คัดลอกตารางตามงานเรียบร้อยแล้ว (วางใน Excel/Teams/แชทได้ทันที)");
+                    return;
+                }
+            } catch {
+                // fallback ด้านล่าง
+            }
+
+            // Fallback: คัดลอกตาราง HTML ผ่าน selection ของ DOM
+            try {
+                const container = document.createElement("div");
+                container.style.position = "fixed";
+                container.style.left = "-9999px";
+                container.innerHTML = htmlTable;
+                document.body.appendChild(container);
+                const range = document.createRange();
+                range.selectNodeContents(container);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                document.execCommand("copy");
+                sel.removeAllRanges();
+                document.body.removeChild(container);
+                showToast("คัดลอกตารางตามงานเรียบร้อยแล้ว");
+            } catch {
+                await copyPlainText(plainTsv);
+            }
+        }
+
+        function showError(title, msg) {
+            errorTitle.textContent = title;
+            errorMessage.textContent = msg;
+            errorAlert.classList.remove("hidden");
+            errorAlert.classList.add("flex");
+        }
+
+        function hideError() {
+            errorAlert.classList.add("hidden");
+            errorAlert.classList.remove("flex");
+        }
+
+        // ===== การจัดการ Event นำเข้าไฟล์ / วางข้อมูล =====
         function openFilePicker() {
             fileInput.click();
         }
-
-        headerUploadBtn.addEventListener("click", openFilePicker);
         selectFileBtn.addEventListener("click", openFilePicker);
 
-        resetDataBtn.addEventListener("click", function() {
-            rawData = [];
+        togglePasteBtn.addEventListener("click", () => {
+            pastePanel.classList.toggle("hidden");
+            if (!pastePanel.classList.contains("hidden")) {
+                pasteTextarea.focus();
+            }
+        });
+        closePasteBtn.addEventListener("click", () => pastePanel.classList.add("hidden"));
+
+        processPasteBtn.addEventListener("click", () => {
+            const text = pasteTextarea.value.trim();
+            if (!text) {
+                showError("ไม่พบข้อมูลที่วาง", "กรุณาวางข้อความตารางจาก Excel หรือไฟล์ .txt ก่อนกดแปลงข้อมูล");
+                return;
+            }
+            hideError();
             currentWorkbook = null;
-            activeSheetName = "";
-            fileInput.value = "";
-            tableSearchInput.value = "";
-            statusBadge.textContent = "สถานะ: รอการนำเข้าไฟล์";
-            fileMetaText.textContent = "คลิกเลือกไฟล์จากเครื่อง หรือลากไฟล์มาวางภายในกรอบนี้";
-            actionToolbar.classList.add("hidden");
-            actionToolbar.classList.remove("flex");
-            resetDataBtn.classList.add("hidden");
-            sheetTabsContainer.replaceChildren();
-            renderEmptyState("ยังไม่มีข้อมูลที่นำเข้า", "เลือกไฟล์ Excel หรือ CSV ด้านบนเพื่อแสดงข้อมูลทั้งหมดในตาราง");
+            sheetSelectWrapper.classList.add("hidden");
+            sheetSelectWrapper.classList.remove("flex");
+            const rows = parseDelimitedText(text);
+            if (rows.length === 0) {
+                showError("รูปแบบข้อมูลไม่ถูกต้อง", "ไม่พบแถวข้อมูลที่มีหัวตาราง กรุณาตรวจสอบข้อมูลที่คัดลอกมาอีกครั้ง");
+                return;
+            }
+            currentFileName = "pasted_work_orders";
+            applyParsedRows(rows, "ข้อมูลที่วางจากคลิปบอร์ด", `${rows.length} แถว`);
+            pastePanel.classList.add("hidden");
         });
 
-        // รองรับการลากไฟล์มาวาง (Drag and Drop)
-        dropZone.addEventListener("dragover", function(e) {
+        dropZone.addEventListener("dragover", (e) => {
             e.preventDefault();
             dropZone.classList.add("border-blue-500", "bg-blue-50/40");
         });
-
-        dropZone.addEventListener("dragleave", function() {
+        dropZone.addEventListener("dragleave", () => {
             dropZone.classList.remove("border-blue-500", "bg-blue-50/40");
         });
-
-        dropZone.addEventListener("drop", function(e) {
+        dropZone.addEventListener("drop", (e) => {
             e.preventDefault();
             dropZone.classList.remove("border-blue-500", "bg-blue-50/40");
-            const file = e.dataTransfer.files[0];
-            if (file) {
-                handleSelectedFile(file);
+            const files = Array.from(e.dataTransfer.files || []);
+            if (files.length > 0) handleSelectedFiles(files);
+        });
+
+        fileInput.addEventListener("change", (e) => {
+            const files = Array.from(e.target.files || []);
+            if (files.length > 0) handleSelectedFiles(files);
+            e.target.value = "";
+        });
+
+        resetDataBtn.addEventListener("click", () => {
+            currentWorkbook = null;
+            currentFileName = "";
+            rawRows = [];
+            transformedJobs = [];
+            selectedTeamKey = "";
+            teamSummarySearchInput.value = "";
+            teamSummaryRegionFilter.value = "";
+            teamSummaryFilterSelect.value = "";
+            teamScopeFilter.value = "";
+            tableSearchInput.value = "";
+            pasteTextarea.value = "";
+            hideError();
+            statusBadge.textContent = "สถานะ: รอการนำเข้าข้อมูล";
+            fileMetaText.textContent = "เลือกไฟล์จากเครื่องได้หลายไฟล์พร้อมกัน (ระบบจะรวมเป็นชุดเดียวก่อนแปลงข้อมูล) ลากมาวาง หรือคัดลอกจาก Excel มาวางได้ทันที";
+            kpiSection.classList.add("hidden");
+            teamSummarySection.classList.add("hidden");
+            actionToolbar.classList.add("hidden");
+            actionToolbar.classList.remove("flex");
+            resetDataBtn.classList.add("hidden");
+            renderEmptyTable("ยังไม่มีข้อมูลใบงานที่นำเข้า", "เลือกไฟล์ Excel / .txt (TSV) หรือกด \"วางข้อมูลจาก Excel\" ด้านบนเพื่อเริ่มแปลงข้อมูล");
+        });
+
+        // ===== ตัวแยกข้อความ Delimited (TSV / CSV UTF-8) =====
+        function detectDelimiter(headerLine) {
+            const tabCount = (headerLine.match(/\t/g) || []).length;
+            const commaCount = (headerLine.match(/,/g) || []).length;
+            return tabCount >= commaCount && tabCount > 0 ? "\t" : ",";
+        }
+
+        function parseCsvLine(line, delimiter) {
+            if (delimiter === "\t") {
+                return line.split("\t").map((cell) => cell.trim());
+            }
+            const cells = [];
+            let current = "";
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const ch = line[i];
+                if (ch === '"') {
+                    if (inQuotes && line[i + 1] === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (ch === delimiter && !inQuotes) {
+                    cells.push(current.trim());
+                    current = "";
+                } else {
+                    current += ch;
+                }
+            }
+            cells.push(current.trim());
+            return cells;
+        }
+
+        function parseDelimitedText(text) {
+            const cleanText = text.replace(/^\uFEFF/, "");
+            const lines = cleanText.split(/\r?\n/).filter((l) => l.trim() !== "");
+            if (lines.length < 2) return [];
+
+            const delimiter = detectDelimiter(lines[0]);
+            const headers = parseCsvLine(lines[0], delimiter);
+            const rows = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = parseCsvLine(lines[i], delimiter);
+                const rowObj = {};
+                headers.forEach((h, idx) => {
+                    if (h) {
+                        rowObj[h] = values[idx] !== undefined ? values[idx] : "";
+                    }
+                });
+                rows.push(rowObj);
+            }
+            return rows;
+        }
+
+        function readSingleFile(file) {
+            return new Promise((resolve, reject) => {
+                const lowerName = file.name.toLowerCase();
+                const isTextDelimited = lowerName.endsWith(".txt") || lowerName.endsWith(".tsv") || lowerName.endsWith(".csv");
+                const isExcel = lowerName.endsWith(".xlsx") || lowerName.endsWith(".xls");
+
+                if (!isTextDelimited && !isExcel) {
+                    reject(new Error(`ไม่รองรับนามสกุลไฟล์ "${file.name}" (รองรับเฉพาะ .xlsx, .xls, .csv, .tsv, .txt)`));
+                    return;
+                }
+
+                if (isTextDelimited) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const text = e.target.result;
+                            const rows = parseDelimitedText(text);
+                            if (rows.length === 0) {
+                                reject(new Error(`ไม่พบแถวข้อมูลในไฟล์ "${file.name}"`));
+                                return;
+                            }
+                            resolve({
+                                fileName: file.name,
+                                fileSize: file.size,
+                                rows,
+                                workbook: null,
+                                firstSheetName: null
+                            });
+                        } catch (err) {
+                            reject(new Error(`ไม่สามารถอ่านไฟล์ "${file.name}": ${err.message || "รูปแบบไฟล์ไม่ถูกต้อง"}`));
+                        }
+                    };
+                    reader.onerror = () => reject(new Error(`ไม่สามารถเปิดอ่านไฟล์ "${file.name}" จากเครื่องได้`));
+                    reader.readAsText(file, "UTF-8");
+                    return;
+                }
+
+                if (typeof XLSX === "undefined") {
+                    reject(new Error("ไม่พบไลบรารี SheetJS กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วรีเฟรชหน้าเว็บ"));
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: "array", cellDates: true });
+                        if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+                            reject(new Error(`ไม่พบแผ่นงาน (Sheet) ภายในไฟล์ "${file.name}"`));
+                            return;
+                        }
+                        const firstSheetName = workbook.SheetNames[0];
+                        const ws = workbook.Sheets[firstSheetName];
+                        const rows = XLSX.utils.sheet_to_json(ws, { defval: "", raw: false });
+                        if (rows.length === 0) {
+                            reject(new Error(`ไม่พบแถวข้อมูลในไฟล์ "${file.name}"`));
+                            return;
+                        }
+                        resolve({
+                            fileName: file.name,
+                            fileSize: file.size,
+                            rows,
+                            workbook,
+                            firstSheetName
+                        });
+                    } catch (err) {
+                        reject(new Error(`ไม่สามารถอ่านไฟล์ Excel "${file.name}": ${err.message || "ไฟล์อาจเสียหายหรือมีการตั้งรหัสผ่าน"}`));
+                    }
+                };
+                reader.onerror = () => reject(new Error(`ไม่สามารถเปิดอ่านไฟล์ "${file.name}" จากเครื่องได้`));
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        async function handleSelectedFiles(fileList) {
+            const files = Array.from(fileList || []);
+            if (files.length === 0) return;
+
+            hideError();
+            statusBadge.textContent = files.length === 1
+                ? `กำลังอ่านไฟล์: ${files[0].name}`
+                : `กำลังอ่านและรวมไฟล์ทั้งหมด ${files.length} ไฟล์...`;
+
+            try {
+                const results = [];
+                for (const file of files) {
+                    const parsed = await readSingleFile(file);
+                    results.push(parsed);
+                }
+
+                if (results.length === 1) {
+                    const single = results[0];
+                    currentFileName = single.fileName;
+                    if (single.workbook) {
+                        currentWorkbook = single.workbook;
+                        populateSheetSelect(single.workbook.SheetNames);
+                        loadExcelSheet(single.firstSheetName, single.fileName, single.fileSize);
+                    } else {
+                        currentWorkbook = null;
+                        sheetSelectWrapper.classList.add("hidden");
+                        sheetSelectWrapper.classList.remove("flex");
+                        applyParsedRows(single.rows, single.fileName, `${formatFileSize(single.fileSize)} · ${single.rows.length} แถว`);
+                    }
+                    return;
+                }
+
+                const mergedRows = [];
+                let totalSize = 0;
+                const fileNames = [];
+                results.forEach((res) => {
+                    mergedRows.push(...res.rows);
+                    totalSize += res.fileSize;
+                    fileNames.push(res.fileName);
+                });
+
+                currentWorkbook = null;
+                currentFileName = `merged_${results.length}_files`;
+                sheetSelectWrapper.classList.add("hidden");
+                sheetSelectWrapper.classList.remove("flex");
+
+                const previewNames = fileNames.length <= 3
+                    ? fileNames.join(", ")
+                    : `${fileNames.slice(0, 3).join(", ")} และอีก ${fileNames.length - 3} ไฟล์`;
+                const sourceLabel = `รวม ${results.length} ไฟล์ (${previewNames})`;
+                const metaLabel = `ขนาดรวม ${formatFileSize(totalSize)} · ${mergedRows.length} แถว`;
+
+                applyParsedRows(mergedRows, sourceLabel, metaLabel);
+                showToast(`รวมข้อมูลจาก ${results.length} ไฟล์ (${mergedRows.length} แถว) เรียบร้อยแล้ว`);
+            } catch (err) {
+                showError("ไม่สามารถอ่านไฟล์ได้", err.message || "เกิดข้อผิดพลาดในการอ่านไฟล์ที่เลือก");
+                statusBadge.textContent = "เกิดข้อผิดพลาดในการอ่านไฟล์";
+            }
+        }
+
+        function populateSheetSelect(sheetNames) {
+            sheetSelect.replaceChildren();
+            sheetNames.forEach((name) => {
+                const opt = document.createElement("option");
+                opt.value = name;
+                opt.textContent = name;
+                sheetSelect.appendChild(opt);
+            });
+            if (sheetNames.length > 1) {
+                sheetSelectWrapper.classList.remove("hidden");
+                sheetSelectWrapper.classList.add("flex");
+            } else {
+                sheetSelectWrapper.classList.add("hidden");
+                sheetSelectWrapper.classList.remove("flex");
+            }
+        }
+
+        sheetSelect.addEventListener("change", () => {
+            if (currentWorkbook && sheetSelect.value) {
+                loadExcelSheet(sheetSelect.value, currentFileName);
             }
         });
 
-        // ดักจับเหตุการณ์เมื่อผู้ใช้เลือกไฟล์
-        fileInput.addEventListener("change", function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                handleSelectedFile(file);
-            }
-            event.target.value = "";
-        });
-
-        // ค้นหาในตารางแบบเรียลไทม์
-        tableSearchInput.addEventListener("input", function() {
-            const keyword = tableSearchInput.value.trim().toLowerCase();
-            if (!keyword) {
-                renderRawTable(rawData);
-                return;
-            }
-            const filtered = rawData.filter(row =>
-                Object.values(row).some(val => String(val ?? "").toLowerCase().includes(keyword))
-            );
-            renderRawTable(filtered, rawData.length);
-        });
+        function loadExcelSheet(sheetName, fileName, fileSize) {
+            const ws = currentWorkbook.Sheets[sheetName];
+            const rows = XLSX.utils.sheet_to_json(ws, { defval: "", raw: false });
+            const sizeLabel = fileSize !== undefined ? `${formatFileSize(fileSize)} · ` : "";
+            applyParsedRows(rows, `${fileName} (${sheetName})`, `${sizeLabel}${rows.length} แถว`);
+        }
 
         function formatFileSize(bytes) {
             if (bytes < 1024) return `${bytes} B`;
@@ -254,104 +830,631 @@
             return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
         }
 
-        function handleSelectedFile(file) {
-            if (typeof XLSX === "undefined") {
-                statusBadge.textContent = "ไม่สามารถโหลดไลบรารีอ่านไฟล์ Excel ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต";
-                renderEmptyState("ไม่พบไลบรารี SheetJS", "กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วรีเฟรชหน้าเว็บอีกครั้ง");
-                return;
-            }
-
-            statusBadge.textContent = `กำลังอ่านไฟล์: ${file.name}`;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: "array" });
-
-                    if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
-                        throw new Error("ไม่พบแผ่นงาน (Sheet) ในไฟล์นี้");
-                    }
-
-                    currentWorkbook = workbook;
-                    loadSheet(workbook.SheetNames[0], file.name, file.size);
-                } catch (err) {
-                    rawData = [];
-                    currentWorkbook = null;
-                    statusBadge.textContent = `เกิดข้อผิดพลาด: ${err.message || "ไม่สามารถอ่านไฟล์ได้"}`;
-                    renderEmptyState("ไม่สามารถอ่านไฟล์ได้", err.message || "กรุณาตรวจสอบว่าไฟล์ไม่เสียหายหรือไม่ได้ตั้งรหัสผ่าน");
+        // ===== การแปลงข้อมูลและจัดกลุ่มตามเงื่อนไขติดตามงาน =====
+        function getField(row, candidates) {
+            const keys = Object.keys(row);
+            for (const candidate of candidates) {
+                const lowerCand = candidate.toLowerCase();
+                const foundKey = keys.find((k) => k.trim().toLowerCase() === lowerCand);
+                if (foundKey !== undefined) {
+                    const val = row[foundKey];
+                    return val === null || val === undefined ? "" : String(val).trim();
                 }
-            };
-
-            reader.onerror = function() {
-                rawData = [];
-                currentWorkbook = null;
-                statusBadge.textContent = "เกิดข้อผิดพลาดระหว่างเปิดอ่านไฟล์";
-                renderEmptyState("เกิดข้อผิดพลาด", "ไม่สามารถเปิดอ่านไฟล์จากอุปกรณ์ของคุณได้");
-            };
-
-            reader.readAsArrayBuffer(file);
+            }
+            return "";
         }
 
-        function loadSheet(sheetName, fileName, fileSize) {
-            if (!currentWorkbook) return;
-            activeSheetName = sheetName;
-            const worksheet = currentWorkbook.Sheets[sheetName];
-            rawData = XLSX.utils.sheet_to_json(worksheet, { defval: "", raw: false });
+        function parsePlanDate(val) {
+            if (!val) return null;
+            if (val instanceof Date) return Number.isNaN(val.getTime()) ? null : val;
+            const str = String(val).trim();
+            if (!str) return null;
 
-            tableSearchInput.value = "";
-            statusBadge.textContent = `โหลดสำเร็จ: ${fileName} (ชีต: ${sheetName})`;
-            if (fileSize !== undefined) {
-                fileMetaText.textContent = `ไฟล์ปัจจุบัน: ${fileName} · ขนาด ${formatFileSize(fileSize)} · ${currentWorkbook.SheetNames.length} แผ่นงาน`;
+            const isoLike = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:[ T](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+            if (isoLike) {
+                const [, y, m, d, hh = "0", mm = "0", ss = "0"] = isoLike;
+                const dt = new Date(Number(y), Number(m) - 1, Number(d), Number(hh), Number(mm), Number(ss));
+                return Number.isNaN(dt.getTime()) ? null : dt;
             }
 
-            renderSheetTabs(fileName);
+            const dmy = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})(?:[ T](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+            if (dmy) {
+                const [, d, m, y, hh = "0", mm = "0", ss = "0"] = dmy;
+                const dt = new Date(Number(y), Number(m) - 1, Number(d), Number(hh), Number(mm), Number(ss));
+                return Number.isNaN(dt.getTime()) ? null : dt;
+            }
+
+            const fallback = new Date(str);
+            return Number.isNaN(fallback.getTime()) ? null : fallback;
+        }
+
+        // รายชื่อทีม/พื้นที่ที่รวมเป็น "ทีมรีแลค" เป็นทีมเดียว
+        const RELAX_TEAM_PATTERNS = [
+            "Phetchaburi",
+            "Suphan Buri",
+            "Stech Network Solution (Chachoengsao)",
+            "Amata Team (Chon Buri)",
+            "Do Asset Inter (Chon Buri)",
+            "AT All Solution (Prachinburi)",
+            "Do Asset Inter (Rayong)",
+            "CMM Communication (Chanthaburi)",
+            "DD Vision (Chiang Mai)",
+            "WeSafety Two (Chiang Mai)",
+            "Total Interplus (Chiang Rai)",
+            "Hi Speed 2016 (Phichit)",
+            "Wiz creation (Nakhon Sawan)",
+            "Charoen Telecom (Chaiyaphum)",
+            "Sampeenong Telecom (Mahasarakham)",
+            "DMP Inter Network (Udon Thani)",
+            "M Monney Broadband (Udon Thani)",
+            "19 Meena Service (Krabi)",
+            "Interbroadband (Nakhon Si Thammarat)",
+            "19 Meena Service (Phang nga)",
+            "Dussanee Engineering (Songkhla)",
+            "Bonus Advance (Surat Thani)",
+            "Worldgenius (Ko Pha-ngan Surat Thani)",
+            "Worldgenius (Ko Samui Surat Thani)",
+            "MangMee Fiber Optic (Trang)",
+            "19 Meena Service (Surat Thani)",
+            "Worldgenius (Ko Pha-ngan)",
+            "Pakita (Chumphon)"
+        ];
+
+        function compactTeamMatchText(str) {
+            return String(str || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        }
+
+        const RELAX_TEAM_COMPACT_KEYS = RELAX_TEAM_PATTERNS.map(compactTeamMatchText);
+
+        function isRelaxContractTeam(rawTeam) {
+            if (!rawTeam) return false;
+            const compactRaw = compactTeamMatchText(rawTeam);
+            if (!compactRaw) return false;
+            return RELAX_TEAM_COMPACT_KEYS.some((key) => compactRaw.includes(key));
+        }
+
+        function shortenContractTeam(rawTeam) {
+            if (!rawTeam) return "-";
+            const hashIndex = rawTeam.indexOf("#");
+            if (hashIndex > 0) {
+                return rawTeam.slice(0, hashIndex).trim();
+            }
+            const dashRomIndex = rawTeam.indexOf(" - ");
+            if (dashRomIndex > 0) {
+                return rawTeam.slice(0, dashRomIndex).trim();
+            }
+            return rawTeam;
+        }
+
+        function formatDateDisplay(date, fallbackStr) {
+            if (!date) return fallbackStr || "-";
+            const pad = (n) => String(n).padStart(2, "0");
+            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        }
+
+        function formatThaiDateOnly(date, fallbackStr) {
+            if (!date) return fallbackStr || "-";
+            const pad = (n) => String(n).padStart(2, "0");
+            return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
+        }
+
+        function formatThaiTableDate(date, fallbackStr) {
+            if (!date) return fallbackStr || "-";
+            const pad = (n) => String(n).padStart(2, "0");
+            return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}, ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+        }
+
+        function getTimeSlotInfo(date) {
+            if (!date) {
+                return { order: 99, shortName: "", endHour: null, label: "*ไม่ระบุ Slot*" };
+            }
+            const hour = date.getHours();
+            if (hour < 11) {
+                return { order: 1, shortName: "Slot1", endHour: 11, label: "*Slot1\n09.00-11.00*" };
+            }
+            if (hour < 13) {
+                return { order: 2, shortName: "Slot2", endHour: 13, label: "*Slot2\n11.00-13.00*" };
+            }
+            if (hour < 15) {
+                return { order: 3, shortName: "Slot3", endHour: 15, label: "*Slot3\n13.00-15.00*" };
+            }
+            if (hour < 17) {
+                return { order: 4, shortName: "Slot4", endHour: 17, label: "*Slot4\n15.00-17.00*" };
+            }
+            return { order: 5, shortName: "Slot5", endHour: 19, label: "*Slot5\n17.00-19.00*" };
+        }
+
+        function transformAllRows() {
+            const cutoff = getCutoffDate();
+            const now = new Date();
+            const isCutoffToday =
+                cutoff.getFullYear() === now.getFullYear() &&
+                cutoff.getMonth() === now.getMonth() &&
+                cutoff.getDate() === now.getDate();
+            const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+            transformedJobs = rawRows.map((row, idx) => {
+                const productOwner = getField(row, ["Product Owner", "Product"]);
+                const title = getField(row, ["Title", "Problem", "Detail"]);
+                const requestNo = getField(row, ["Request No.", "Request No", "RequestNo"]);
+                const region = getField(row, ["Region"]);
+                const accessNumber = getField(row, ["Access Number", "Access No", "AccessNumber"]);
+                const taskStatus = getField(row, ["Task Status", "Status"]);
+                const fieldEngineer = getField(row, ["Field Engineer", "Engineer", "Technician"]);
+                const contractTeamRaw = getField(row, ["Contract Team", "Team"]);
+                const planArrivalRaw = getField(row, ["Plan Arrival Time", "Plan Arrival", "Appointment"]);
+                const address = getField(row, ["Address"]);
+                const processingStatus = getField(row, ["Processing Status", "Processing"]);
+                const phone = getField(row, ["Contact Phone Number", "Phone", "Contact Phone"]);
+                const areaName = getField(row, ["Area Name", "Area"]);
+                const latitude = getField(row, ["Latitude", "Lat"]);
+                const longitude = getField(row, ["Longitude", "Lng", "Lon"]);
+
+                const contractTeamShort = shortenContractTeam(contractTeamRaw);
+                const isRelaxTeam = isRelaxContractTeam(contractTeamRaw);
+                const contractTeamGroup = isRelaxTeam ? "ทีมรีแลค" : contractTeamShort;
+                const planDate = parsePlanDate(planArrivalRaw);
+                const slotInfo = getTimeSlotInfo(planDate);
+                const statusLower = taskStatus.toLowerCase();
+                const isCompleted = statusLower === "completed" || statusLower === "complete" || statusLower === "closed";
+                const isExplicitNew = statusLower === "new";
+
+                // กลุ่มสถานะแบบรวมตามที่กำหนด:
+                // - "scheduled_processing" = Scheduled + Processing ที่ยังไม่ Completed และเลยวันตัดรอบ หรืออยู่ในวันปัจจุบันแต่เลยช่วงเวลา Slot แล้ว
+                // - "completed_new" = Completed รวมกับงาน NEW (Task Status = New หรือยังไม่เลยวันตัดรอบ/ยังไม่เลยช่วง Slot ของวันปัจจุบัน)
+                let statusGroup = "scheduled_processing";
+                let subType = "followup"; // followup | new | completed
+                let statusCategoryLabel = "ตามปิดงาน";
+                let timingText = "";
+                let diffDays = 0;
+
+                if (planDate) {
+                    diffDays = getDayDiffFromCutoff(cutoff, planDate);
+                }
+
+                const isSameDayPastSlot = Boolean(
+                    planDate &&
+                    diffDays === 0 &&
+                    isCutoffToday &&
+                    slotInfo.endHour !== null &&
+                    nowMinutes >= slotInfo.endHour * 60
+                );
+
+                if (isCompleted) {
+                    statusGroup = "completed_new";
+                    subType = "completed";
+                    statusCategoryLabel = "Completed";
+                    timingText = "ปิดงานแล้ว";
+                } else if (isExplicitNew || (planDate && (diffDays < 0 || (diffDays === 0 && !isSameDayPastSlot)))) {
+                    statusGroup = "completed_new";
+                    subType = "new";
+                    statusCategoryLabel = "งาน NEW";
+                    if (planDate) {
+                        if (diffDays < 0) {
+                            timingText = `อีก ${Math.abs(diffDays)} วัน`;
+                        } else if (diffDays === 0) {
+                            timingText = slotInfo.shortName ? `นัดวันนี้ (${slotInfo.shortName})` : "นัดวันนี้";
+                        } else {
+                            timingText = `เลยนัด ${diffDays} วัน`;
+                        }
+                    } else {
+                        timingText = "ยังไม่เลยวันนัด";
+                    }
+                } else {
+                    statusGroup = "scheduled_processing";
+                    subType = "followup";
+                    statusCategoryLabel = "ตามปิดงาน";
+                    if (isSameDayPastSlot) {
+                        timingText = `เลย ${slotInfo.shortName} วันนี้`;
+                    } else if (planDate) {
+                        timingText = `เลยนัด ${diffDays} วัน`;
+                    } else {
+                        timingText = "ไม่ระบุวันนัด";
+                    }
+                }
+
+                const hasCoords = latitude !== "" && longitude !== "" && !Number.isNaN(Number(latitude)) && !Number.isNaN(Number(longitude));
+                const mapUrl = hasCoords ? `https://maps.google.com/?q=${encodeURIComponent(latitude + "," + longitude)}` : "";
+
+                return {
+                    rowIndex: idx + 1,
+                    productOwner,
+                    title,
+                    requestNo,
+                    region,
+                    accessNumber,
+                    taskStatus,
+                    fieldEngineer,
+                    contractTeamRaw,
+                    contractTeamShort,
+                    isRelaxTeam,
+                    contractTeamGroup,
+                    planArrivalRaw,
+                    planDate,
+                    planDisplay: formatDateDisplay(planDate, planArrivalRaw),
+                    planThaiDateOnly: formatThaiDateOnly(planDate, planArrivalRaw),
+                    planThaiTableDisplay: formatThaiTableDate(planDate, planArrivalRaw),
+                    slotInfo,
+                    address,
+                    processingStatus,
+                    phone,
+                    areaName,
+                    latitude,
+                    longitude,
+                    mapUrl,
+                    statusGroup,
+                    subType,
+                    isCompleted,
+                    statusCategoryLabel,
+                    timingText,
+                    diffDays,
+                    raw: row
+                };
+            });
+        }
+
+        const EXCLUDED_CONTRACT_TEAM_KEYWORDS = ["network", "osm", "fsqm"];
+
+        function isExcludedContractTeamText(text) {
+            const lower = String(text || "").toLowerCase();
+            return EXCLUDED_CONTRACT_TEAM_KEYWORDS.some((kw) => lower.includes(kw));
+        }
+
+        function isExcludedContractTeamRow(row) {
+            const contractTeam = getField(row, ["Contract Team", "ContractTeam", "Team"]);
+            return isExcludedContractTeamText(contractTeam);
+        }
+
+        function applyParsedRows(rows, sourceLabel, metaLabel) {
+            const filteredRows = rows.filter((row) => !isExcludedContractTeamRow(row));
+            const excludedTeamCount = rows.length - filteredRows.length;
+
+            rawRows = filteredRows;
+            selectedTeamKey = "";
+            teamSummarySearchInput.value = "";
+            teamSummaryRegionFilter.value = "";
+            transformAllRows();
+            populateFilterOptions();
+
+            const excludedNote = excludedTeamCount > 0
+                ? ` · คัดทีม Network/OSM/FSQM ออก ${excludedTeamCount.toLocaleString("th-TH")} แถว (คงเหลือ ${filteredRows.length.toLocaleString("th-TH")} แถว)`
+                : "";
+
+            statusBadge.textContent = `โหลดสำเร็จ: ${sourceLabel}`;
+            fileMetaText.textContent = `แหล่งข้อมูล: ${sourceLabel} · ${metaLabel}${excludedNote} · แปลงสถานะเรียบร้อย`;
+
+            kpiSection.classList.remove("hidden");
+            kpiSection.classList.add("grid");
+            teamSummarySection.classList.remove("hidden");
             actionToolbar.classList.remove("hidden");
             actionToolbar.classList.add("flex");
             resetDataBtn.classList.remove("hidden");
 
-            renderRawTable(rawData);
+            activeBucket = "followup";
+            updateAllViews();
         }
 
-        function renderSheetTabs(fileName) {
-            sheetTabsContainer.replaceChildren();
-            if (!currentWorkbook) return;
+        function populateFilterOptions() {
+            const regions = Array.from(new Set(transformedJobs.map((j) => j.region).filter(Boolean))).sort();
+            const owners = Array.from(new Set(transformedJobs.map((j) => j.productOwner).filter(Boolean))).sort();
 
-            const label = document.createElement("span");
-            label.className = "text-xs font-semibold text-slate-500 mr-1 whitespace-nowrap";
-            label.textContent = "แผ่นงาน:";
-            sheetTabsContainer.appendChild(label);
+            fillSelect(regionFilter, "ทุกภูมิภาค (Region)", regions);
+            fillSelect(ownerFilter, "ทุก Product", owners);
+        }
 
-            const group = document.createElement("div");
-            group.className = "flex items-center gap-1 p-1 bg-slate-100 rounded-lg overflow-x-auto max-w-full";
+        function fillSelect(selectEl, defaultLabel, items) {
+            const prev = selectEl.value;
+            selectEl.replaceChildren();
+            const defOpt = document.createElement("option");
+            defOpt.value = "";
+            defOpt.textContent = defaultLabel;
+            selectEl.appendChild(defOpt);
+            items.forEach((item) => {
+                const opt = document.createElement("option");
+                opt.value = item;
+                opt.textContent = item;
+                selectEl.appendChild(opt);
+            });
+            if (items.includes(prev)) selectEl.value = prev;
+        }
 
-            currentWorkbook.SheetNames.forEach(name => {
-                const btn = document.createElement("button");
-                btn.type = "button";
-                const isActive = name === activeSheetName;
+        function updateAllViews() {
+            const followupJobs = transformedJobs.filter((j) => j.statusGroup === "scheduled_processing");
+            const completedNewJobs = transformedJobs.filter((j) => j.statusGroup === "completed_new");
+
+            const procCount = followupJobs.filter((j) => j.taskStatus.toLowerCase() === "processing").length;
+            const schedCount = followupJobs.filter((j) => j.taskStatus.toLowerCase() === "scheduled").length;
+            const compCount = completedNewJobs.filter((j) => j.subType === "completed").length;
+            const newCount = completedNewJobs.filter((j) => j.subType === "new").length;
+
+            // KPI
+            document.getElementById("kpiFollowUp").textContent = followupJobs.length.toLocaleString("th-TH");
+            document.getElementById("kpiFollowUpSub").textContent = `Processing ${procCount} · Scheduled ${schedCount}`;
+            document.getElementById("kpiCompletedNew").textContent = completedNewJobs.length.toLocaleString("th-TH");
+            document.getElementById("kpiCompletedNewSub").textContent = `Completed ${compCount} · New ${newCount}`;
+            document.getElementById("kpiTotal").textContent = transformedJobs.length.toLocaleString("th-TH");
+
+            const uniqueFollowupTeams = new Set(followupJobs.map((j) => j.contractTeamGroup));
+            document.getElementById("kpiTeams").textContent = uniqueFollowupTeams.size.toLocaleString("th-TH");
+
+            // Tab Counts
+            document.getElementById("tabCountFollowup").textContent = followupJobs.length;
+            document.getElementById("tabCountCompletedNew").textContent = completedNewJobs.length;
+            document.getElementById("tabCountAll").textContent = transformedJobs.length;
+
+            // Update active tab styling
+            document.querySelectorAll(".bucket-tab").forEach((btn) => {
+                const isActive = btn.dataset.bucket === activeBucket;
                 btn.className = isActive
-                    ? "px-3 py-1.5 text-xs font-medium rounded-md bg-white text-slate-900 shadow-xs whitespace-nowrap shrink-0 cursor-pointer"
-                    : "px-3 py-1.5 text-xs font-medium rounded-md text-slate-600 hover:text-slate-900 whitespace-nowrap shrink-0 cursor-pointer";
-                btn.textContent = name;
-                btn.addEventListener("click", () => loadSheet(name, fileName));
-                group.appendChild(btn);
+                    ? "bucket-tab px-3 py-1.5 text-xs font-semibold rounded-md bg-blue-100 text-blue-900 border border-blue-300 shadow-xs whitespace-nowrap cursor-pointer transition-colors"
+                    : "bucket-tab px-3 py-1.5 text-xs font-medium rounded-md bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-200 whitespace-nowrap cursor-pointer transition-colors";
             });
 
-            sheetTabsContainer.appendChild(group);
+            renderTeamSummary(followupJobs);
+            renderWorkOrderTable();
         }
 
-        function renderEmptyState(title, subtitle) {
-            const thead = document.getElementById("tableHeader");
-            const tbody = document.getElementById("tableBody");
-            const countBadge = document.getElementById("rowCount");
-            const colSep = document.getElementById("columnCountSeparator");
-            const colCount = document.getElementById("columnCount");
+        function renderTeamSummary(followupJobs) {
+            teamSummaryBody.replaceChildren();
 
-            thead.replaceChildren();
-            tbody.replaceChildren();
+            const summaryRegions = Array.from(new Set(followupJobs.map((j) => j.region).filter(Boolean))).sort();
+            fillSelect(teamSummaryRegionFilter, "ทุกภูมิภาค (Region)", summaryRegions);
+            const selectedSummaryRegion = teamSummaryRegionFilter.value;
+            const teamKeyword = teamSummarySearchInput.value.trim().toLowerCase();
 
+            const scopedJobs = followupJobs.filter((job) => {
+                if (selectedSummaryRegion && job.region !== selectedSummaryRegion) return false;
+                if (teamKeyword) {
+                    const haystack = [
+                        job.requestNo,
+                        job.accessNumber,
+                        job.fieldEngineer,
+                        job.contractTeamGroup,
+                        job.contractTeamShort,
+                        job.contractTeamRaw,
+                        job.phone,
+                        job.region,
+                        job.taskStatus,
+                        job.processingStatus,
+                        job.title
+                    ].join(" ").toLowerCase();
+                    if (!haystack.includes(teamKeyword)) return false;
+                }
+                return true;
+            });
+
+            const teamMap = new Map();
+            scopedJobs.forEach((job) => {
+                const key = job.contractTeamGroup || "-";
+                if (!teamMap.has(key)) {
+                    teamMap.set(key, {
+                        teamShort: key,
+                        isRelaxTeam: job.isRelaxTeam,
+                        subTeams: new Set(),
+                        rawTeams: new Set(),
+                        regions: new Set(),
+                        jobs: [],
+                        processingCount: 0,
+                        scheduledCount: 0,
+                        oldestPlan: null
+                    });
+                }
+                const entry = teamMap.get(key);
+                if (job.contractTeamShort) entry.subTeams.add(job.contractTeamShort);
+                if (job.contractTeamRaw) entry.rawTeams.add(job.contractTeamRaw);
+                if (job.region) entry.regions.add(job.region);
+                entry.jobs.push(job);
+                const st = job.taskStatus.toLowerCase();
+                if (st === "processing") entry.processingCount++;
+                if (st === "scheduled") entry.scheduledCount++;
+                if (job.planDate && (!entry.oldestPlan || job.planDate < entry.oldestPlan)) {
+                    entry.oldestPlan = job.planDate;
+                }
+            });
+
+            const allTeams = Array.from(teamMap.values()).sort((a, b) => {
+                if (a.isRelaxTeam !== b.isRelaxTeam) return a.isRelaxTeam ? -1 : 1;
+                if (b.jobs.length !== a.jobs.length) return b.jobs.length - a.jobs.length;
+                if (a.oldestPlan && b.oldestPlan) return a.oldestPlan - b.oldestPlan;
+                return 0;
+            });
+
+            // อัปเดตตัวเลือกใน dropdown ค้นเฉพาะทีม
+            const prevSelect = teamSummaryFilterSelect.value;
+            teamSummaryFilterSelect.replaceChildren();
+            const allOpt = document.createElement("option");
+            allOpt.value = "";
+            allOpt.textContent = `ทุกทีมช่าง (${allTeams.length} ทีม)`;
+            teamSummaryFilterSelect.appendChild(allOpt);
+            allTeams.forEach((t) => {
+                const opt = document.createElement("option");
+                opt.value = t.teamShort;
+                opt.textContent = `${t.teamShort} (${t.jobs.length})`;
+                teamSummaryFilterSelect.appendChild(opt);
+            });
+            if (selectedTeamKey && allTeams.some((t) => t.teamShort === selectedTeamKey)) {
+                teamSummaryFilterSelect.value = selectedTeamKey;
+            } else if (prevSelect && allTeams.some((t) => t.teamShort === prevSelect)) {
+                teamSummaryFilterSelect.value = prevSelect;
+            }
+
+            // กรองรายการทีมในตารางสรุปตาม dropdown เฉพาะทีม
+            const teamDropdownVal = teamSummaryFilterSelect.value;
+            const visibleTeams = allTeams.filter((t) => {
+                if (teamDropdownVal && t.teamShort !== teamDropdownVal) return false;
+                return true;
+            });
+
+            if (visibleTeams.length === 0) {
+                const tr = document.createElement("tr");
+                const td = document.createElement("td");
+                td.colSpan = 7;
+                td.className = "text-center py-8 text-xs text-slate-500";
+                td.textContent = followupJobs.length === 0
+                    ? "ไม่มีงานค้างที่เลยวันที่อ้างอิงตัดรอบงาน NEW"
+                    : "ไม่พบข้อมูลทีมหรือใบงานที่ตรงกับคำค้นหา";
+                tr.appendChild(td);
+                teamSummaryBody.appendChild(tr);
+            } else {
+                const frag = document.createDocumentFragment();
+                visibleTeams.forEach((t) => {
+                    const tr = document.createElement("tr");
+                    const isSelected = selectedTeamKey === t.teamShort;
+                    tr.className = isSelected ? "bg-blue-50/70 transition-colors" : "hover:bg-slate-50 transition-colors";
+
+                    // ชื่อทีม (คลิกเพื่อกรอง)
+                    const tdTeam = document.createElement("td");
+                    tdTeam.className = "px-4 py-2.5 font-medium text-slate-900 max-w-xs";
+                    const teamBtn = document.createElement("button");
+                    teamBtn.type = "button";
+                    teamBtn.className = t.isRelaxTeam
+                        ? (isSelected
+                            ? "text-left text-xs font-bold text-blue-950 bg-blue-200 border border-blue-400 px-2.5 py-1 rounded-md cursor-pointer truncate max-w-full inline-block transition-colors"
+                            : "text-left text-xs font-bold text-blue-900 bg-blue-50 border border-blue-200 hover:bg-blue-100 px-2.5 py-1 rounded-md cursor-pointer truncate max-w-full inline-block transition-colors")
+                        : (isSelected
+                            ? "text-left text-xs font-semibold text-blue-950 bg-blue-100 border border-blue-300 px-2.5 py-1 rounded-md cursor-pointer truncate max-w-full inline-block transition-colors"
+                            : "text-left text-xs font-medium text-slate-800 bg-slate-100 border border-slate-200 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-800 px-2.5 py-1 rounded-md cursor-pointer truncate max-w-full inline-block transition-colors");
+                    teamBtn.textContent = t.teamShort;
+                    teamBtn.title = Array.from(t.rawTeams).join("\n");
+                    teamBtn.addEventListener("click", () => {
+                        selectedTeamKey = selectedTeamKey === t.teamShort ? "" : t.teamShort;
+                        teamSummaryFilterSelect.value = selectedTeamKey;
+                        if (selectedTeamKey === "ทีมรีแลค") {
+                            teamScopeFilter.value = "relax";
+                        } else if (!selectedTeamKey && teamScopeFilter.value === "relax") {
+                            teamScopeFilter.value = "";
+                        }
+                        if (selectedTeamKey && teamSummaryRegionFilter.value) {
+                            regionFilter.value = teamSummaryRegionFilter.value;
+                        }
+                        activeBucket = "followup";
+                        updateAllViews();
+                    });
+                    tdTeam.appendChild(teamBtn);
+                    if (t.isRelaxTeam) {
+                        const subInfo = document.createElement("div");
+                        subInfo.className = "text-xs text-slate-500 truncate mt-0.5";
+                        subInfo.textContent = `รวม ${t.subTeams.size} ทีมย่อย: ${Array.from(t.subTeams).join(", ")}`;
+                        subInfo.title = Array.from(t.subTeams).join("\n");
+                        tdTeam.appendChild(subInfo);
+                    }
+                    tr.appendChild(tdTeam);
+
+                    // Region
+                    const tdReg = document.createElement("td");
+                    tdReg.className = "px-4 py-2.5 text-xs text-slate-600 whitespace-nowrap font-mono-tabular";
+                    tdReg.textContent = Array.from(t.regions).join(", ") || "-";
+                    tr.appendChild(tdReg);
+
+                    // Total follow-up
+                    const tdTotal = document.createElement("td");
+                    tdTotal.className = "px-4 py-2.5 text-right font-bold text-red-600 font-mono-tabular whitespace-nowrap";
+                    tdTotal.textContent = String(t.jobs.length);
+                    tr.appendChild(tdTotal);
+
+                    // Processing
+                    const tdProc = document.createElement("td");
+                    tdProc.className = "px-4 py-2.5 text-right text-slate-700 font-mono-tabular whitespace-nowrap";
+                    tdProc.textContent = String(t.processingCount);
+                    tr.appendChild(tdProc);
+
+                    // Scheduled
+                    const tdSched = document.createElement("td");
+                    tdSched.className = "px-4 py-2.5 text-right text-slate-700 font-mono-tabular whitespace-nowrap";
+                    tdSched.textContent = String(t.scheduledCount);
+                    tr.appendChild(tdSched);
+
+                    // Oldest plan
+                    const tdOld = document.createElement("td");
+                    tdOld.className = "px-4 py-2.5 text-xs text-slate-600 font-mono-tabular whitespace-nowrap";
+                    tdOld.textContent = t.oldestPlan ? formatDateDisplay(t.oldestPlan, "") : "-";
+                    tr.appendChild(tdOld);
+
+                    // Copy table button
+                    const tdAction = document.createElement("td");
+                    tdAction.className = "px-4 py-2.5 text-right whitespace-nowrap";
+                    const copyBtn = document.createElement("button");
+                    copyBtn.type = "button";
+                    copyBtn.className = "px-2.5 py-1 text-xs font-medium text-blue-900 bg-blue-50 border border-blue-200 hover:bg-blue-100 rounded-md cursor-pointer transition-colors";
+                    copyBtn.textContent = "คัดลอกตามทีม";
+                    copyBtn.addEventListener("click", () => {
+                        const { htmlTable, plainTsv } = buildFollowupTablePayload(t.jobs);
+                        copyRichTable(htmlTable, plainTsv);
+                    });
+                    tdAction.appendChild(copyBtn);
+                    tr.appendChild(tdAction);
+
+                    frag.appendChild(tr);
+                });
+                teamSummaryBody.appendChild(frag);
+            }
+
+            if (selectedTeamKey || teamSummarySearchInput.value.trim() || teamSummaryFilterSelect.value || teamSummaryRegionFilter.value) {
+                clearTeamFilterBtn.classList.remove("hidden");
+            } else {
+                clearTeamFilterBtn.classList.add("hidden");
+            }
+
+            if (selectedTeamKey) {
+                activeTeamBadge.textContent = `· กรองทีม: ${selectedTeamKey}`;
+                activeTeamBadge.classList.remove("hidden");
+            } else {
+                activeTeamBadge.classList.add("hidden");
+            }
+        }
+
+        function getFilteredJobs() {
+            const keyword = tableSearchInput.value.trim().toLowerCase();
+            const regionVal = regionFilter.value;
+            const ownerVal = ownerFilter.value;
+            const statusGroupVal = taskStatusFilter.value;
+            const teamScopeVal = teamScopeFilter.value;
+
+            const list = transformedJobs.filter((job) => {
+                if (activeBucket === "followup" && job.statusGroup !== "scheduled_processing") return false;
+                if (activeBucket === "completed_new" && job.statusGroup !== "completed_new") return false;
+
+                if (statusGroupVal === "scheduled_processing" && job.statusGroup !== "scheduled_processing") return false;
+                if (statusGroupVal === "completed_new" && job.statusGroup !== "completed_new") return false;
+
+                if (teamScopeVal === "relax" && !job.isRelaxTeam) return false;
+                if (teamScopeVal === "other" && job.isRelaxTeam) return false;
+
+                if (selectedTeamKey && job.contractTeamGroup !== selectedTeamKey) return false;
+                if (regionVal && job.region !== regionVal) return false;
+                if (ownerVal && job.productOwner !== ownerVal) return false;
+
+                if (keyword) {
+                    const haystack = [
+                        job.requestNo,
+                        job.accessNumber,
+                        job.fieldEngineer,
+                        job.contractTeamGroup,
+                        job.contractTeamShort,
+                        job.contractTeamRaw,
+                        job.phone,
+                        job.taskStatus,
+                        job.processingStatus,
+                        job.title
+                    ].join(" ").toLowerCase();
+                    if (!haystack.includes(keyword)) return false;
+                }
+                return true;
+            });
+
+            list.sort((a, b) => {
+                if (a.planDate && b.planDate) return a.planDate - b.planDate;
+                return a.rowIndex - b.rowIndex;
+            });
+
+            return list;
+        }
+
+        function renderEmptyTable(title, subtitle) {
+            tableBody.replaceChildren();
             const tr = document.createElement("tr");
             const td = document.createElement("td");
+            td.colSpan = 9;
             td.className = "text-center py-14 px-6 text-slate-500";
 
             const pTitle = document.createElement("p");
@@ -365,98 +1468,550 @@
             td.appendChild(pTitle);
             td.appendChild(pSub);
             tr.appendChild(td);
-            tbody.appendChild(tr);
+            tableBody.appendChild(tr);
 
-            countBadge.textContent = "ทั้งหมด 0 แถว";
-            colSep.classList.add("hidden");
-            colCount.classList.add("hidden");
+            document.getElementById("rowCount").textContent = "ทั้งหมด 0 รายการ";
         }
 
-        // ฟังก์ชันวาดตารางแสดงผล
-        function renderRawTable(dataList, totalRowCount) {
-            const thead = document.getElementById("tableHeader");
-            const tbody = document.getElementById("tableBody");
-            const countBadge = document.getElementById("rowCount");
-            const colSep = document.getElementById("columnCountSeparator");
-            const colCount = document.getElementById("columnCount");
+        function renderWorkOrderTable() {
+            const list = getFilteredJobs();
+            const titleMap = {
+                followup: "ตารางงานที่ต้องตามปิด (Task Status ยังไม่ Completed และเลยวันที่อ้างอิงตัดรอบแล้ว)",
+                completed_new: "ตารางงาน Completed + New (งานที่ปิดแล้วและงานที่ยังไม่เลยวันตัดรอบ)",
+                all: "ตารางใบงานทั้งหมดในไฟล์"
+            };
+            document.getElementById("tableSectionTitle").textContent = titleMap[activeBucket] || "ตารางรายการใบงาน";
 
-            thead.replaceChildren();
-            tbody.replaceChildren();
-
-            if (!dataList || dataList.length === 0) {
-                const isSearchEmpty = typeof totalRowCount === "number" && totalRowCount > 0;
-                renderEmptyState(
-                    isSearchEmpty ? "ไม่พบข้อมูลที่ตรงกับคำค้นหา" : "ไม่พบข้อมูลในแผ่นงานนี้",
-                    isSearchEmpty ? "ลองเปลี่ยนคำค้นหาหรือล้างช่องค้นหาเพื่อดูข้อมูลทั้งหมด" : "แผ่นงานที่เลือกไม่มีแถวข้อมูล"
-                );
-                if (isSearchEmpty) {
-                    countBadge.textContent = `แสดง 0 / ${totalRowCount} แถว`;
-                }
+            if (list.length === 0) {
+                renderEmptyTable("ไม่พบใบงานตามเงื่อนไขที่เลือก", "ลองเปลี่ยนแท็บสถานะ ล้างตัวกรองทีม หรือปรับคำค้นหา");
                 return;
             }
 
-            // 1. รวมรายชื่อหัวตารางทั้งหมดจากทุกแถว
-            const headerSet = new Set();
-            dataList.forEach(row => {
-                Object.keys(row).forEach(key => headerSet.add(key));
-            });
-            const headers = Array.from(headerSet);
+            tableBody.replaceChildren();
+            const frag = document.createDocumentFragment();
 
-            // 2. สร้างหัวตาราง (ใส่คอลัมน์ลำดับที่ไว้หน้าสุด)
-            const headFragment = document.createDocumentFragment();
-            const indexTh = document.createElement("th");
-            indexTh.className = "px-4 py-3 whitespace-nowrap bg-slate-200/70 w-14 text-center font-mono-tabular";
-            indexTh.textContent = "#";
-            headFragment.appendChild(indexTh);
-
-            headers.forEach(header => {
-                const th = document.createElement("th");
-                th.className = "px-4 py-3 whitespace-nowrap";
-                th.textContent = header;
-                headFragment.appendChild(th);
-            });
-            thead.appendChild(headFragment);
-
-            // 3. วนลูปสร้างข้อมูลทีละแถว
-            const bodyFragment = document.createDocumentFragment();
-            dataList.forEach((row, index) => {
+            list.forEach((job, idx) => {
                 const tr = document.createElement("tr");
-                tr.className = "hover:bg-blue-50/50 transition-colors";
+                tr.className = "hover:bg-blue-50/40 transition-colors align-top";
 
-                const indexTd = document.createElement("td");
-                indexTd.className = "px-4 py-2.5 text-center text-xs text-slate-400 font-medium bg-slate-50/60 font-mono-tabular";
-                indexTd.textContent = String(index + 1);
-                tr.appendChild(indexTd);
+                // 1. ลำดับ (#)
+                const tdIdx = document.createElement("td");
+                tdIdx.className = "px-3 py-3 text-center text-xs text-slate-400 font-mono-tabular bg-slate-50/50";
+                tdIdx.textContent = String(idx + 1);
+                tr.appendChild(tdIdx);
 
-                headers.forEach(header => {
-                    const td = document.createElement("td");
-                    const rawVal = row[header];
-                    const isEmpty = rawVal === "" || rawVal === null || rawVal === undefined;
-                    const text = isEmpty ? "-" : String(rawVal);
-                    const isNumeric = !isEmpty && /^-?\d[\d,]*(\.\d+)?$/.test(text.trim());
+                // 2. สถานะติดตาม (อยู่ระหว่าง # กับ Request No. / Access)
+                const tdTrack = document.createElement("td");
+                tdTrack.className = "px-3 py-3 whitespace-nowrap";
+                const trackTitle = document.createElement("div");
+                const trackSub = document.createElement("div");
+                if (job.subType === "followup") {
+                    trackTitle.className = "text-xs font-semibold text-red-700";
+                    trackTitle.textContent = "ตามปิดงาน";
+                    trackSub.className = "text-xs font-mono-tabular text-red-600 mt-0.5";
+                    trackSub.textContent = job.timingText;
+                } else if (job.subType === "new") {
+                    trackTitle.className = "text-xs font-semibold text-blue-700";
+                    trackTitle.textContent = "งาน NEW";
+                    trackSub.className = "text-xs font-mono-tabular text-blue-600 mt-0.5";
+                    trackSub.textContent = job.timingText;
+                } else {
+                    trackTitle.className = "text-xs font-semibold text-emerald-700";
+                    trackTitle.textContent = "Completed";
+                    trackSub.className = "text-xs text-slate-500 mt-0.5";
+                    trackSub.textContent = "ปิดงานแล้ว";
+                }
+                tdTrack.appendChild(trackTitle);
+                tdTrack.appendChild(trackSub);
+                tr.appendChild(tdTrack);
 
-                    td.className = isEmpty
-                        ? "px-4 py-2.5 whitespace-nowrap text-slate-400"
-                        : isNumeric
-                            ? "px-4 py-2.5 whitespace-nowrap font-mono-tabular text-slate-800"
-                            : "px-4 py-2.5 whitespace-nowrap text-slate-800";
-                    td.textContent = text;
-                    tr.appendChild(td);
+                // 3. Request No. / Access Number
+                const tdReq = document.createElement("td");
+                tdReq.className = "px-3 py-3 whitespace-nowrap";
+                const reqBtn = document.createElement("button");
+                reqBtn.type = "button";
+                reqBtn.className = "px-2 py-0.5 text-xs font-semibold text-slate-800 bg-slate-100 border border-slate-200 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-800 rounded font-mono-tabular cursor-pointer inline-block transition-colors";
+                reqBtn.textContent = job.requestNo || "-";
+                reqBtn.title = "คลิกเพื่อคัดลอก Request No.";
+                reqBtn.addEventListener("click", () => job.requestNo && copyPlainText(job.requestNo));
+
+                const accLine = document.createElement("div");
+                accLine.className = "text-xs text-slate-500 font-mono-tabular mt-0.5";
+                accLine.textContent = job.accessNumber || "-";
+                tdReq.appendChild(reqBtn);
+                tdReq.appendChild(accLine);
+                tr.appendChild(tdReq);
+
+                // 4. Task Status / Processing Status
+                const tdStat = document.createElement("td");
+                tdStat.className = "px-3 py-3 whitespace-nowrap";
+                const taskLine = document.createElement("div");
+                const isProc = job.taskStatus.toLowerCase() === "processing";
+                taskLine.className = isProc
+                    ? "text-xs font-semibold text-amber-700"
+                    : "text-xs font-semibold text-slate-800";
+                taskLine.textContent = job.taskStatus || "-";
+
+                const procLine = document.createElement("div");
+                procLine.className = "text-xs text-slate-500 mt-0.5";
+                procLine.textContent = job.processingStatus || "-";
+                tdStat.appendChild(taskLine);
+                tdStat.appendChild(procLine);
+                tr.appendChild(tdStat);
+
+                // 5. Product / Region (อยู่ระหว่าง Task / Processing และ ทีมช่าง)
+                const tdProd = document.createElement("td");
+                tdProd.className = "px-3 py-3 whitespace-nowrap";
+                const prodLine = document.createElement("div");
+                prodLine.className = "text-xs font-semibold text-slate-900 font-mono-tabular";
+                prodLine.textContent = job.productOwner || "-";
+                const regLine = document.createElement("div");
+                regLine.className = "text-xs text-slate-500 font-mono-tabular mt-0.5";
+                regLine.textContent = job.region || "-";
+                tdProd.appendChild(prodLine);
+                tdProd.appendChild(regLine);
+                tr.appendChild(tdProd);
+
+                // 6. ทีมช่าง (Contract Team)
+                const tdTeam = document.createElement("td");
+                tdTeam.className = "px-3 py-3 max-w-[240px]";
+                if (job.isRelaxTeam) {
+                    const relaxLabel = document.createElement("div");
+                    relaxLabel.className = "text-xs font-bold text-blue-700";
+                    relaxLabel.textContent = "ทีมรีแลค";
+                    const subTeamDiv = document.createElement("div");
+                    subTeamDiv.className = "text-xs text-slate-500 truncate mt-0.5";
+                    subTeamDiv.textContent = job.contractTeamShort;
+                    subTeamDiv.title = job.contractTeamRaw;
+                    tdTeam.appendChild(relaxLabel);
+                    tdTeam.appendChild(subTeamDiv);
+                } else {
+                    const teamDiv = document.createElement("div");
+                    teamDiv.className = "text-xs font-medium text-slate-900 truncate";
+                    teamDiv.textContent = job.contractTeamShort;
+                    teamDiv.title = job.contractTeamRaw;
+                    tdTeam.appendChild(teamDiv);
+                }
+                tr.appendChild(tdTeam);
+
+                // 7. ช่างผู้รับผิดชอบ / เบอร์ติดต่อ
+                const tdEng = document.createElement("td");
+                tdEng.className = "px-3 py-3 max-w-[220px]";
+                const engDiv = document.createElement("div");
+                engDiv.className = "text-xs font-medium text-slate-900 truncate";
+                engDiv.textContent = job.fieldEngineer || "-";
+                engDiv.title = job.fieldEngineer;
+                tdEng.appendChild(engDiv);
+
+                if (job.phone) {
+                    const phoneLink = document.createElement("a");
+                    phoneLink.href = `tel:${job.phone}`;
+                    phoneLink.className = "text-xs text-blue-600 hover:underline font-mono-tabular mt-0.5 inline-block";
+                    phoneLink.textContent = job.phone;
+                    tdEng.appendChild(phoneLink);
+                } else {
+                    const noPhone = document.createElement("div");
+                    noPhone.className = "text-xs text-slate-400 mt-0.5";
+                    noPhone.textContent = "-";
+                    tdEng.appendChild(noPhone);
+                }
+                tr.appendChild(tdEng);
+
+                // 8. เวลานัดหมาย (Plan Arrival Time)
+                const tdPlan = document.createElement("td");
+                tdPlan.className = "px-3 py-3 whitespace-nowrap font-mono-tabular text-xs text-slate-800";
+                tdPlan.textContent = job.planDisplay;
+                tr.appendChild(tdPlan);
+
+                // 9. จัดการ
+                const tdAct = document.createElement("td");
+                tdAct.className = "px-3 py-3 whitespace-nowrap text-right";
+                const btnWrap = document.createElement("div");
+                btnWrap.className = "inline-flex items-center gap-1.5";
+
+                const copyJobBtn = document.createElement("button");
+                copyJobBtn.type = "button";
+                copyJobBtn.className = "px-2.5 py-1 text-xs font-medium text-slate-800 bg-slate-100 border border-slate-300 hover:bg-slate-200 rounded-md cursor-pointer transition-colors";
+                copyJobBtn.textContent = "คัดลอก";
+                copyJobBtn.addEventListener("click", () => {
+                    const { htmlTable, plainTsv } = buildFollowupTablePayload([job]);
+                    copyRichTable(htmlTable, plainTsv);
                 });
 
-                bodyFragment.appendChild(tr);
-            });
-            tbody.appendChild(bodyFragment);
+                const detailBtn = document.createElement("button");
+                detailBtn.type = "button";
+                detailBtn.className = "px-2.5 py-1 text-xs font-medium text-sky-900 bg-sky-50 border border-sky-200 hover:bg-sky-100 rounded-md cursor-pointer transition-colors";
+                detailBtn.textContent = "ดูข้อมูล";
+                detailBtn.addEventListener("click", () => openJobModal(job));
 
-            if (typeof totalRowCount === "number" && totalRowCount !== dataList.length) {
-                countBadge.textContent = `แสดง ${dataList.length} / ${totalRowCount} แถว`;
-            } else {
-                countBadge.textContent = `ทั้งหมด ${dataList.length} แถว`;
-            }
-            colSep.classList.remove("hidden");
-            colCount.classList.remove("hidden");
-            colCount.textContent = `${headers.length} คอลัมน์`;
+                btnWrap.appendChild(copyJobBtn);
+                btnWrap.appendChild(detailBtn);
+                tdAct.appendChild(btnWrap);
+                tr.appendChild(tdAct);
+
+                frag.appendChild(tr);
+            });
+
+            tableBody.appendChild(frag);
+            document.getElementById("rowCount").textContent = `แสดง ${list.length.toLocaleString("th-TH")} รายการ`;
         }
+
+        // ===== สร้างตารางตามตัวอย่างสำหรับ "คัดลอกตามทีม" (HTML Table + TSV) =====
+        function escapeHtml(str) {
+            return String(str ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        function isBkkRegionJob(job) {
+            return (job.region || "").trim().toUpperCase() === "BKK";
+        }
+
+        function isJobPastToday(job, todayDate) {
+            if (!job.planDate) return false;
+            return getDayDiffFromCutoff(todayDate, job.planDate) > 0;
+        }
+
+        function buildFollowupTablePayload(jobs) {
+            const sorted = [...jobs].sort((a, b) => {
+                if (a.slotInfo.order !== b.slotInfo.order) {
+                    return a.slotInfo.order - b.slotInfo.order;
+                }
+                if (a.planDate && b.planDate) return a.planDate - b.planDate;
+                return a.rowIndex - b.rowIndex;
+            });
+
+            const todayDate = new Date();
+            const allBkk = sorted.length > 0 && sorted.every(isBkkRegionJob);
+            const bkkHasPastToday = allBkk && sorted.some((j) => isJobPastToday(j, todayDate));
+            // BKK: คัดลอกเฉพาะ Request No., Access, ช่างผู้รับผิดชอบ (และเพิ่มคอลัมน์วันที่เฉพาะกรณีมีงานเลยวันปัจจุบัน)
+            const colCount = allBkk ? (bkkHasPastToday ? 4 : 3) : 5;
+
+            // จัดกลุ่มตาม Slot
+            const slotGroups = new Map();
+            sorted.forEach((job) => {
+                const key = job.slotInfo.label;
+                if (!slotGroups.has(key)) {
+                    slotGroups.set(key, []);
+                }
+                slotGroups.get(key).push(job);
+            });
+
+            const cellStyle = "border:1px solid #475569;padding:6px 10px;vertical-align:middle;text-align:left;";
+            const headText = "เน้นย้ำ งานซ่อมบำรุง (MA) ทีมช่างดำเนินการปิดงานบน LMR และ SOA ภายใน Slot หลังแก้ไขปัญหาเรียบร้อยแล้ว";
+            const footerLines = [
+                "- หากทีมช่างแก้ไขและลูกค้ามีการ onlineหลังจากเข้าปฏิบัติงานควรปิดงานทันที",
+                "- หากติดปัญหาการปิดงานไม่ได้ภายใน Slot และภายในวัน ต้องแจ้งกลับมาถึงสาเหตุที่ปิดงานไม่ได้ด้วยครับ",
+                "- กรณีหน่วยงานตรวจสอบไม่พบการปิดงานภายในSlot และภายในวัน หลังจากการ Onlineของลูกค้า  โดยที่ไม่มีแจ้งกลับมาถึงสาเหตุที่ปิดงานไม่ได้จะมีการปรับตามนโยบายบริษัทฯ อ้างอิง Re-Deploy I1-25650605"
+            ];
+
+            const htmlRows = [];
+            const tsvRows = [];
+            const emptyCellsHtml = (count) => `<td style="${cellStyle}"></td>`.repeat(count);
+            const trailingTabs = "\t".repeat(colCount - 1);
+
+            // แถวหัวข้อใหญ่บนสุด
+            if (colCount >= 4) {
+                htmlRows.push(
+                    `<tr><td colspan="${colCount - 1}" style="${cellStyle}font-weight:700;">${escapeHtml(headText)}</td><td style="${cellStyle}"></td></tr>`
+                );
+            } else {
+                htmlRows.push(
+                    `<tr><td colspan="${colCount}" style="${cellStyle}font-weight:700;">${escapeHtml(headText)}</td></tr>`
+                );
+            }
+            tsvRows.push(`${headText}${trailingTabs}`);
+
+            // แถวแยกตามแต่ละ Slot
+            slotGroups.forEach((groupJobs, slotLabel) => {
+                const slotHtml = escapeHtml(slotLabel).replace(/\n/g, "<br>");
+                const slotPlain = slotLabel.replace(/\n/g, " ");
+
+                htmlRows.push(
+                    `<tr><td style="${cellStyle}font-weight:700;white-space:nowrap;">${slotHtml}</td>${emptyCellsHtml(colCount - 1)}</tr>`
+                );
+                tsvRows.push(`${slotPlain}${trailingTabs}`);
+
+                groupJobs.forEach((j) => {
+                    const req = j.requestNo || "-";
+                    const acc = j.accessNumber || "-";
+                    const eng = j.fieldEngineer || "-";
+                    const pastToday = isJobPastToday(j, todayDate);
+
+                    if (allBkk) {
+                        if (bkkHasPastToday) {
+                            const dateOnly = pastToday ? (j.planThaiDateOnly || "-") : "";
+                            htmlRows.push(
+                                `<tr>` +
+                                `<td style="${cellStyle}white-space:nowrap;">${escapeHtml(req)}</td>` +
+                                `<td style="${cellStyle}white-space:nowrap;">${escapeHtml(acc)}</td>` +
+                                `<td style="${cellStyle}">${escapeHtml(eng)}</td>` +
+                                `<td style="${cellStyle}white-space:nowrap;">${escapeHtml(dateOnly)}</td>` +
+                                `</tr>`
+                            );
+                            tsvRows.push(`${req}\t${acc}\t${eng}\t${dateOnly}`);
+                        } else {
+                            htmlRows.push(
+                                `<tr>` +
+                                `<td style="${cellStyle}white-space:nowrap;">${escapeHtml(req)}</td>` +
+                                `<td style="${cellStyle}white-space:nowrap;">${escapeHtml(acc)}</td>` +
+                                `<td style="${cellStyle}">${escapeHtml(eng)}</td>` +
+                                `</tr>`
+                            );
+                            tsvRows.push(`${req}\t${acc}\t${eng}`);
+                        }
+                    } else {
+                        const isBkk = isBkkRegionJob(j);
+                        const team = isBkk ? "" : (j.contractTeamRaw || j.contractTeamShort || "-");
+                        const plan = isBkk
+                            ? (pastToday ? (j.planThaiDateOnly || "-") : "")
+                            : (j.planThaiTableDisplay || "-");
+
+                        htmlRows.push(
+                            `<tr>` +
+                            `<td style="${cellStyle}white-space:nowrap;">${escapeHtml(req)}</td>` +
+                            `<td style="${cellStyle}white-space:nowrap;">${escapeHtml(acc)}</td>` +
+                            `<td style="${cellStyle}">${escapeHtml(eng)}</td>` +
+                            `<td style="${cellStyle}">${escapeHtml(team)}</td>` +
+                            `<td style="${cellStyle}white-space:nowrap;">${escapeHtml(plan)}</td>` +
+                            `</tr>`
+                        );
+                        tsvRows.push(`${req}\t${acc}\t${eng}\t${team}\t${plan}`);
+                    }
+                });
+
+                htmlRows.push(
+                    `<tr><td style="${cellStyle}">------------</td>${emptyCellsHtml(colCount - 1)}</tr>`
+                );
+                tsvRows.push(`------------${trailingTabs}`);
+            });
+
+            // 3 แถวหมายเหตุด้านล่าง
+            footerLines.forEach((line) => {
+                htmlRows.push(
+                    `<tr><td colspan="${colCount}" style="${cellStyle}">${escapeHtml(line)}</td></tr>`
+                );
+                tsvRows.push(line);
+            });
+
+            const htmlTable = `<table style="border-collapse:collapse;font-family:Sarabun,sans-serif;font-size:13px;"><tbody>${htmlRows.join("")}</tbody></table>`;
+            const plainTsv = tsvRows.join("\n");
+
+            return { htmlTable, plainTsv };
+        }
+
+        // ===== Modal รายละเอียดใบงาน =====
+        function openJobModal(job) {
+            currentModalJob = job;
+            document.getElementById("modalTitle").textContent = `${job.requestNo || "ใบงาน"} · ${job.accessNumber || ""}`;
+            document.getElementById("modalSubtitle").textContent = `${job.productOwner} · ${job.region} · ${job.statusCategoryLabel} (${job.timingText})`;
+
+            const content = document.getElementById("modalContent");
+            content.replaceChildren();
+
+            const fields = [
+                ["อาการ / Title", job.title],
+                ["Task Status / Processing", `${job.taskStatus || "-"} · ${job.processingStatus || "-"}`],
+                ["เวลานัดหมาย (Plan Arrival Time)", job.planThaiTableDisplay],
+                ["กลุ่มทีม (Team Group)", job.contractTeamGroup],
+                ["ทีมช่าง (ชื่อย่อ)", job.contractTeamShort],
+                ["Contract Team (เต็ม)", job.contractTeamRaw],
+                ["ช่างผู้รับผิดชอบ (Field Engineer)", job.fieldEngineer],
+                ["เบอร์ติดต่อ", job.phone],
+                ["พื้นที่ (Area Name)", job.areaName],
+                ["ที่อยู่ (Address)", job.address],
+                ["พิกัด (Lat, Lng)", job.latitude && job.longitude ? `${job.latitude}, ${job.longitude}` : "-"]
+            ];
+
+            const dl = document.createElement("dl");
+            dl.className = "divide-y divide-slate-100";
+            fields.forEach(([label, val]) => {
+                const row = document.createElement("div");
+                row.className = "py-2.5 grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4";
+                const dt = document.createElement("dt");
+                dt.className = "text-xs font-semibold text-slate-500";
+                dt.textContent = label;
+                const dd = document.createElement("dd");
+                dd.className = "text-xs sm:col-span-2 text-slate-900 break-words";
+                dd.textContent = val || "-";
+                row.appendChild(dt);
+                row.appendChild(dd);
+                dl.appendChild(row);
+            });
+            content.appendChild(dl);
+
+            if (job.mapUrl) {
+                const mapWrap = document.createElement("div");
+                mapWrap.className = "pt-2";
+                const link = document.createElement("a");
+                link.href = job.mapUrl;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                link.className = "inline-flex items-center text-xs font-semibold text-blue-600 hover:underline";
+                link.textContent = "เปิดตำแหน่งลูกค้าใน Google Maps";
+                mapWrap.appendChild(link);
+                content.appendChild(mapWrap);
+            }
+
+            detailModal.classList.remove("hidden");
+        }
+
+        closeModalBtn.addEventListener("click", () => detailModal.classList.add("hidden"));
+        detailModal.addEventListener("click", (e) => {
+            if (e.target === detailModal) detailModal.classList.add("hidden");
+        });
+        modalCopyBtn.addEventListener("click", () => {
+            if (currentModalJob) {
+                const { htmlTable, plainTsv } = buildFollowupTablePayload([currentModalJob]);
+                copyRichTable(htmlTable, plainTsv);
+            }
+        });
+
+        // ===== Events ตัวกรอง & ส่งออก =====
+        document.querySelectorAll(".bucket-tab").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                activeBucket = btn.dataset.bucket;
+                if (activeBucket === "completed_new") {
+                    selectedTeamKey = "";
+                    teamSummaryFilterSelect.value = "";
+                }
+                updateAllViews();
+            });
+        });
+
+        teamSummarySearchInput.addEventListener("input", () => {
+            const followupJobs = transformedJobs.filter((j) => j.statusGroup === "scheduled_processing");
+            renderTeamSummary(followupJobs);
+        });
+
+        teamSummaryRegionFilter.addEventListener("change", () => {
+            const followupJobs = transformedJobs.filter((j) => j.statusGroup === "scheduled_processing");
+            renderTeamSummary(followupJobs);
+        });
+
+        teamSummaryFilterSelect.addEventListener("change", () => {
+            selectedTeamKey = teamSummaryFilterSelect.value;
+            if (selectedTeamKey === "ทีมรีแลค") {
+                teamScopeFilter.value = "relax";
+            } else if (!selectedTeamKey && teamScopeFilter.value === "relax") {
+                teamScopeFilter.value = "";
+            }
+            if (selectedTeamKey) {
+                if (teamSummaryRegionFilter.value) {
+                    regionFilter.value = teamSummaryRegionFilter.value;
+                }
+                activeBucket = "followup";
+            }
+            updateAllViews();
+        });
+
+        clearTeamFilterBtn.addEventListener("click", () => {
+            selectedTeamKey = "";
+            teamSummarySearchInput.value = "";
+            teamSummaryRegionFilter.value = "";
+            teamSummaryFilterSelect.value = "";
+            teamScopeFilter.value = "";
+            updateAllViews();
+        });
+
+        cutoffInput.addEventListener("change", () => {
+            if (rawRows.length > 0) {
+                transformAllRows();
+                updateAllViews();
+            }
+        });
+
+        setNowCutoffBtn.addEventListener("click", () => {
+            cutoffInput.value = toDateInputValue(new Date());
+            if (rawRows.length > 0) {
+                transformAllRows();
+                updateAllViews();
+            }
+        });
+
+        teamScopeFilter.addEventListener("change", () => {
+            if (teamScopeFilter.value === "relax") {
+                selectedTeamKey = "";
+                teamSummaryFilterSelect.value = "ทีมรีแลค";
+            } else if (teamScopeFilter.value === "other") {
+                if (selectedTeamKey === "ทีมรีแลค") selectedTeamKey = "";
+                if (teamSummaryFilterSelect.value === "ทีมรีแลค") teamSummaryFilterSelect.value = "";
+            } else {
+                selectedTeamKey = "";
+                teamSummaryFilterSelect.value = "";
+            }
+            updateAllViews();
+        });
+
+        [tableSearchInput, regionFilter, ownerFilter, taskStatusFilter].forEach((el) => {
+            el.addEventListener("input", renderWorkOrderTable);
+            el.addEventListener("change", renderWorkOrderTable);
+        });
+
+        copyAllVisibleBtn.addEventListener("click", () => {
+            const list = getFilteredJobs();
+            if (list.length === 0) {
+                showToast("ไม่มีรายการให้คัดลอก");
+                return;
+            }
+            const { htmlTable, plainTsv } = buildFollowupTablePayload(list);
+            copyRichTable(htmlTable, plainTsv);
+        });
+
+        function shouldExcludeFromExport(job) {
+            return isExcludedContractTeamText(`${job.contractTeamRaw || ""} ${job.contractTeamShort || ""}`);
+        }
+
+        exportExcelBtn.addEventListener("click", () => {
+            const list = getFilteredJobs();
+            if (list.length === 0) {
+                showToast("ไม่มีข้อมูลสำหรับส่งออก");
+                return;
+            }
+            if (typeof XLSX === "undefined") {
+                showError("ไม่สามารถส่งออก Excel ได้", "ไม่พบไลบรารี SheetJS ในเบราว์เซอร์");
+                return;
+            }
+
+            const exportList = list.filter((j) => !shouldExcludeFromExport(j));
+            const excludedCount = list.length - exportList.length;
+
+            if (exportList.length === 0) {
+                showToast("ไม่มีข้อมูลสำหรับส่งออก (รายการทั้งหมดถูกคัดออกตามเงื่อนไข Network / OSM / FSQM)");
+                return;
+            }
+
+            const exportData = exportList.map((j, idx) => ({
+                "ลำดับ": idx + 1,
+                "Request No.": j.requestNo,
+                "Access Number": j.accessNumber,
+                "Task Status": j.taskStatus,
+                "Processing Status": j.processingStatus,
+                "Product Owner": j.productOwner,
+                "Region": j.region,
+                "กลุ่มทีม": j.contractTeamGroup,
+                "ทีมช่าง (ชื่อย่อ)": j.contractTeamShort,
+                "Field Engineer": j.fieldEngineer,
+                "Contact Phone Number": j.phone,
+                "Plan Arrival Time": j.planThaiTableDisplay,
+                "สถานะติดตาม": `${j.statusCategoryLabel} (${j.timingText})`,
+                "Title": j.title,
+                "Contract Team (เต็ม)": j.contractTeamRaw
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "ติดตามปิดงาน");
+            const dateStamp = new Date().toISOString().slice(0, 10);
+            XLSX.writeFile(wb, `followup_work_orders_${activeBucket}_${dateStamp}.xlsx`);
+            if (excludedCount > 0) {
+                showToast(`ส่งออก Excel ${exportList.length.toLocaleString("th-TH")} รายการแล้ว (คัด Network/OSM/FSQM ออก ${excludedCount.toLocaleString("th-TH")} รายการ)`);
+            } else {
+                showToast("ส่งออกไฟล์ Excel เรียบร้อยแล้ว");
+            }
+        });
     </script>
 </body>
 </html>
