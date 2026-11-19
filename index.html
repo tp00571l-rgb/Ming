@@ -478,6 +478,11 @@
                         <option value="other">ทีมอื่น ๆ (ไม่ใช่ทีมรีแลค)</option>
                     </select>
 
+                    <button type="button" id="clearTableFiltersBtn"
+                            class="px-3 py-2 text-xs font-semibold text-amber-900 bg-amber-100 border border-amber-300 hover:bg-amber-200 rounded-lg whitespace-nowrap cursor-pointer transition-colors">
+                        ล้างตัวกรอง
+                    </button>
+
                     <div id="sheetSelectWrapper" class="hidden items-center gap-1.5">
                         <span class="text-xs text-slate-500">ชีต:</span>
                         <select id="sheetSelect" aria-label="เลือกแผ่นงาน"
@@ -609,6 +614,7 @@
         const ownerFilter = document.getElementById("ownerFilter");
         const taskStatusFilter = document.getElementById("taskStatusFilter");
         const teamScopeFilter = document.getElementById("teamScopeFilter");
+        const clearTableFiltersBtn = document.getElementById("clearTableFiltersBtn");
         const sheetSelectWrapper = document.getElementById("sheetSelectWrapper");
         const sheetSelect = document.getElementById("sheetSelect");
         const copyAllVisibleBtn = document.getElementById("copyAllVisibleBtn");
@@ -815,6 +821,9 @@
             teamSummaryRegionFilter.value = "";
             teamSummaryFilterSelect.value = "";
             teamScopeFilter.value = "";
+            regionFilter.value = "";
+            ownerFilter.value = "";
+            taskStatusFilter.value = "";
             tableSearchInput.value = "";
             pasteTextarea.value = "";
             hideError();
@@ -2167,6 +2176,20 @@
         [tableSearchInput, regionFilter, ownerFilter, taskStatusFilter].forEach((el) => {
             el.addEventListener("input", renderWorkOrderTable);
             el.addEventListener("change", renderWorkOrderTable);
+        });
+
+        clearTableFiltersBtn.addEventListener("click", () => {
+            tableSearchInput.value = "";
+            regionFilter.value = "";
+            ownerFilter.value = "";
+            taskStatusFilter.value = "";
+            teamScopeFilter.value = "";
+            if (selectedTeamKey) {
+                selectedTeamKey = "";
+                teamSummaryFilterSelect.value = "";
+            }
+            updateAllViews();
+            showToast("ล้างตัวกรองตารางเรียบร้อยแล้ว");
         });
 
         copyAllVisibleBtn.addEventListener("click", () => {
