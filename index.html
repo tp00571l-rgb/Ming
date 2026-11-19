@@ -14,6 +14,15 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        (function () {
+            try {
+                if (localStorage.getItem("workorder_theme") === "dark") {
+                    document.documentElement.classList.add("dark");
+                }
+            } catch (e) {}
+        })();
+    </script>
     <style>
         html {
             scroll-behavior: smooth;
@@ -24,6 +33,176 @@
         .font-mono-tabular {
             font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
             font-variant-numeric: tabular-nums;
+        }
+
+        /* Dark Mode Overrides */
+        html.dark {
+            color-scheme: dark;
+        }
+        html.dark body {
+            background-color: #0b1120;
+            color: #e2e8f0;
+        }
+        html.dark .bg-white {
+            background-color: #0f172a;
+        }
+        html.dark .bg-slate-50 {
+            background-color: #162033;
+        }
+        html.dark .bg-slate-50\/50 {
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+        html.dark .bg-slate-100 {
+            background-color: #1e293b;
+        }
+        html.dark .border-slate-100 {
+            border-color: #1e293b;
+        }
+        html.dark .border-slate-200 {
+            border-color: #334155;
+        }
+        html.dark .border-slate-300 {
+            border-color: #475569;
+        }
+        html.dark .divide-slate-100 > :not(:last-child) {
+            border-color: #1e293b;
+        }
+        html.dark .divide-slate-200 > :not(:last-child) {
+            border-color: #1e293b;
+        }
+        html.dark .text-slate-900 {
+            color: #f1f5f9;
+        }
+        html.dark .text-slate-800 {
+            color: #e2e8f0;
+        }
+        html.dark .text-slate-700 {
+            color: #cbd5e1;
+        }
+        html.dark .text-slate-600 {
+            color: #94a3b8;
+        }
+        html.dark .text-slate-500 {
+            color: #94a3b8;
+        }
+        html.dark .text-slate-400 {
+            color: #64748b;
+        }
+        html.dark .placeholder\:text-slate-400::placeholder {
+            color: #64748b;
+        }
+        html.dark .text-blue-700,
+        html.dark .text-blue-600 {
+            color: #60a5fa;
+        }
+        html.dark .text-red-700,
+        html.dark .text-red-600 {
+            color: #f87171;
+        }
+        html.dark .text-amber-700 {
+            color: #fbbf24;
+        }
+        html.dark .text-emerald-700 {
+            color: #34d399;
+        }
+        html.dark .hover\:text-slate-900:hover {
+            color: #f8fafc;
+        }
+        html.dark .hover\:bg-slate-50:hover {
+            background-color: #1e293b;
+        }
+        html.dark .hover\:bg-slate-200:hover {
+            background-color: #334155;
+        }
+        html.dark .hover\:bg-blue-50\/40:hover {
+            background-color: rgba(30, 58, 138, 0.25);
+        }
+        html.dark .bg-blue-50\/70 {
+            background-color: rgba(30, 58, 138, 0.35);
+        }
+        html.dark .bg-blue-50\/40 {
+            background-color: rgba(30, 58, 138, 0.2);
+        }
+        html.dark .focus\:bg-white:focus {
+            background-color: #0f172a;
+        }
+
+        /* Soft-toned buttons in Dark Mode */
+        html.dark .bg-blue-100 {
+            background-color: rgba(30, 64, 175, 0.38);
+            color: #bfdbfe;
+            border-color: rgba(96, 165, 250, 0.45);
+        }
+        html.dark .bg-blue-100:hover {
+            background-color: rgba(30, 64, 175, 0.55);
+        }
+        html.dark .bg-blue-200 {
+            background-color: rgba(37, 99, 235, 0.48);
+            color: #eff6ff;
+            border-color: rgba(96, 165, 250, 0.65);
+        }
+        html.dark .bg-blue-50 {
+            background-color: rgba(30, 58, 138, 0.3);
+            color: #93c5fd;
+            border-color: rgba(96, 165, 250, 0.35);
+        }
+        html.dark .bg-blue-50:hover {
+            background-color: rgba(30, 64, 175, 0.45);
+        }
+        html.dark .bg-indigo-50 {
+            background-color: rgba(55, 48, 163, 0.32);
+            color: #c7d2fe;
+            border-color: rgba(129, 140, 248, 0.4);
+        }
+        html.dark .bg-indigo-50:hover {
+            background-color: rgba(55, 48, 163, 0.48);
+        }
+        html.dark .bg-emerald-100 {
+            background-color: rgba(6, 95, 70, 0.4);
+            color: #a7f3d0;
+            border-color: rgba(52, 211, 153, 0.45);
+        }
+        html.dark .bg-emerald-100:hover {
+            background-color: rgba(6, 95, 70, 0.58);
+        }
+        html.dark .bg-sky-50 {
+            background-color: rgba(7, 89, 133, 0.34);
+            color: #bae6fd;
+            border-color: rgba(56, 189, 248, 0.4);
+        }
+        html.dark .bg-sky-50:hover {
+            background-color: rgba(7, 89, 133, 0.52);
+        }
+        html.dark .bg-amber-100,
+        html.dark .bg-amber-50 {
+            background-color: rgba(146, 64, 14, 0.35);
+            color: #fde68a;
+            border-color: rgba(251, 191, 36, 0.42);
+        }
+        html.dark .bg-amber-100:hover,
+        html.dark .bg-amber-50:hover {
+            background-color: rgba(146, 64, 14, 0.52);
+        }
+        html.dark .bg-rose-50 {
+            background-color: rgba(159, 18, 57, 0.32);
+            color: #fecdd3;
+            border-color: rgba(251, 113, 133, 0.42);
+        }
+        html.dark .bg-rose-50:hover {
+            background-color: rgba(159, 18, 57, 0.48);
+        }
+        html.dark .bg-red-50 {
+            background-color: rgba(127, 29, 29, 0.35);
+            border-color: rgba(248, 113, 113, 0.45);
+            color: #fecaca;
+        }
+        html.dark .border-red-200 {
+            border-color: rgba(248, 113, 113, 0.45);
+        }
+        html.dark #toastNotice {
+            background-color: #1e293b;
+            color: #f8fafc;
+            border: 1px solid #475569;
         }
     </style>
 </head>
@@ -41,6 +220,27 @@
                 <a href="#team-summary-section" class="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0">สรุปรายทีมช่าง</a>
                 <a href="#workorder-table-section" class="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0">รายการติดตามงาน</a>
             </nav>
+
+            <div class="inline-flex items-center gap-1 p-1 rounded-lg bg-slate-100 border border-slate-200 shrink-0" role="group" aria-label="สลับโหมดสว่างและโหมดมืด">
+                <button type="button" id="lightModeBtn"
+                        class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-md bg-amber-50 text-amber-900 border border-amber-200 cursor-pointer transition-colors whitespace-nowrap">
+                    <svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="4" />
+                        <path d="M12 2v2" /><path d="M12 20v2" />
+                        <path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" />
+                        <path d="M2 12h2" /><path d="M20 12h2" />
+                        <path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" />
+                    </svg>
+                    <span>โหมดสว่าง</span>
+                </button>
+                <button type="button" id="darkModeBtn"
+                        class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors whitespace-nowrap">
+                    <svg width="14" height="14" class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+                    </svg>
+                    <span>โหมดมืด</span>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -418,6 +618,30 @@
         const closeModalBtn = document.getElementById("closeModalBtn");
         const modalCopyBtn = document.getElementById("modalCopyBtn");
         const toastNotice = document.getElementById("toastNotice");
+        const lightModeBtn = document.getElementById("lightModeBtn");
+        const darkModeBtn = document.getElementById("darkModeBtn");
+
+        function applyTheme(mode) {
+            const isDark = mode === "dark";
+            document.documentElement.classList.toggle("dark", isDark);
+            try {
+                localStorage.setItem("workorder_theme", isDark ? "dark" : "light");
+            } catch (e) {}
+
+            if (lightModeBtn && darkModeBtn) {
+                if (isDark) {
+                    lightModeBtn.className = "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors whitespace-nowrap";
+                    darkModeBtn.className = "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-md bg-indigo-50 text-indigo-900 border border-indigo-200 cursor-pointer transition-colors whitespace-nowrap";
+                } else {
+                    lightModeBtn.className = "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-md bg-amber-50 text-amber-900 border border-amber-200 cursor-pointer transition-colors whitespace-nowrap";
+                    darkModeBtn.className = "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors whitespace-nowrap";
+                }
+            }
+        }
+
+        applyTheme(document.documentElement.classList.contains("dark") ? "dark" : "light");
+        lightModeBtn.addEventListener("click", () => applyTheme("light"));
+        darkModeBtn.addEventListener("click", () => applyTheme("dark"));
 
         // ตั้งค่าวันที่อ้างอิงเริ่มต้นเป็นวันที่ปัจจุบันของเครื่อง (เอาแค่วัน ไม่เอาเวลา)
         function toDateInputValue(date) {
