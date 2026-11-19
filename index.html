@@ -1198,14 +1198,14 @@
             const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
             transformedJobs = rawRows.map((row, idx) => {
-                const productOwner = getField(row, ["Product Owner", "Product"]);
                 const title = getField(row, ["Title", "Problem", "Detail"]);
                 const requestNo = getField(row, ["Request No.", "Request No", "RequestNo"]);
                 const region = getField(row, ["Region"]);
                 const accessNumber = getField(row, ["Access Number", "Access No", "AccessNumber"]);
                 const taskStatus = getField(row, ["Task Status", "Status"]);
                 const fieldEngineer = getField(row, ["Field Engineer", "Engineer", "Technician"]);
-                const contractTeamRaw = getField(row, ["Contract Team", "Team"]);
+                const contractTeamRaw = getField(row, ["Contract Team", "ContractTeam", "Team"]);
+                const productOwner = contractTeamRaw.toLowerCase().includes("tttbb") ? "3BB" : "FBB";
                 const planArrivalRaw = getField(row, ["Plan Arrival Time", "Plan Arrival", "Appointment"]);
                 const address = getField(row, ["Address"]);
                 const processingStatus = getField(row, ["Processing Status", "Processing"]);
