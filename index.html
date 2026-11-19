@@ -1893,6 +1893,14 @@
             return (job.region || "").trim().toUpperCase() === "BKK";
         }
 
+        function isTttbbJob(job) {
+            return String(job.contractTeamRaw || job.contractTeamShort || "").toLowerCase().includes("tttbb");
+        }
+
+        function shouldShowTeamForJob(job) {
+            return !isBkkRegionJob(job) || isTttbbJob(job);
+        }
+
         function isJobPastToday(job, todayDate) {
             if (!job.planDate) return false;
             return getDayDiffFromCutoff(todayDate, job.planDate) > 0;
@@ -1908,10 +1916,11 @@
             });
 
             const todayDate = new Date();
-            const allBkk = sorted.length > 0 && sorted.every(isBkkRegionJob);
-            const bkkHasPastToday = allBkk && sorted.some((j) => isJobPastToday(j, todayDate));
-            // BKK: คัดลอกเฉพาะ Request No., Access, ช่างผู้รับผิดชอบ (และเพิ่มคอลัมน์วันที่เฉพาะกรณีมีงานเลยวันปัจจุบัน)
-            const colCount = allBkk ? (bkkHasPastToday ? 4 : 3) : 5;
+            // BKK ปกติ: คัดลอกเฉพาะ Request No., Access, ช่างผู้รับผิดชอบ (เพิ่มวันที่เฉพาะงานเลยวันปัจจุบัน)
+            // ยกเว้น BKK ที่มีคำว่า TTTBB ในทีมช่าง (Contract Team) ให้แสดงทีมช่างในตารางด้วย
+            const showTeamCol = sorted.some(shouldShowTeamForJob);
+            const showDateCol = sorted.some((j) => !isBkkRegionJob(j) || isJobPastToday(j, todayDate));
+            const colCount = 3 + (showTeamCol ? 1 : 0) + (showDateCol ? 1 : 0);
 
             // จัดกลุ่มตาม Slot
             const slotGroups = new Map();
@@ -1964,46 +1973,32 @@
                     const eng = j.fieldEngineer || "-";
                     const pastToday = isJobPastToday(j, todayDate);
 
-                    if (allBkk) {
-                        if (bkkHasPastToday) {
-                            const dateOnly = pastToday ? (j.planThaiDateOnly || "-") : "";
-                            htmlRows.push(
-                                `<tr>` +
-                                `<td style="${cellStyle}white-space:nowrap;">${escapeHtml(req)}</td>` +
-                                `<td style="${cellStyle}white-space:nowrap;">${escapeHtml(acc)}</td>` +
-                                `<td style="${cellStyle}">${escapeHtml(eng)}</td>` +
-                                `<td style="${cellStyle}white-space:nowrap;">${escapeHtml(dateOnly)}</td>` +
-                                `</tr>`
-                            );
-                            tsvRows.push(`${req}\t${acc}\t${eng}\t${dateOnly}`);
-                        } else {
-                            htmlRows.push(
-                                `<tr>` +
-                                `<td style="${cellStyle}white-space:nowrap;">${escapeHtml(req)}</td>` +
-                                `<td style="${cellStyle}white-space:nowrap;">${escapeHtml(acc)}</td>` +
-                                `<td style="${cellStyle}">${escapeHtml(eng)}</td>` +
-                                `</tr>`
-                            );
-                            tsvRows.push(`${req}\t${acc}\t${eng}`);
-                        }
-                    } else {
-                        const isBkk = isBkkRegionJob(j);
-                        const team = isBkk ? "" : (j.contractTeamRaw || j.contractTeamShort || "-");
-                        const plan = isBkk
+                    const cols = [
+                        { val: req, nowrap: true },
+                        { val: acc, nowrap: true },
+                        { val: eng, nowrap: false }
+                    ];
+
+                    if (showTeamCol) {
+                        const team = shouldShowTeamForJob(j)
+                            ? (j.contractTeamRaw || j.contractTeamShort || "-")
+                            : "";
+                        cols.push({ val: team, nowrap: false });
+                    }
+
+                    if (showDateCol) {
+                        const plan = isBkkRegionJob(j)
                             ? (pastToday ? (j.planThaiDateOnly || "-") : "")
                             : (j.planThaiTableDisplay || "-");
-
-                        htmlRows.push(
-                            `<tr>` +
-                            `<td style="${cellStyle}white-space:nowrap;">${escapeHtml(req)}</td>` +
-                            `<td style="${cellStyle}white-space:nowrap;">${escapeHtml(acc)}</td>` +
-                            `<td style="${cellStyle}">${escapeHtml(eng)}</td>` +
-                            `<td style="${cellStyle}">${escapeHtml(team)}</td>` +
-                            `<td style="${cellStyle}white-space:nowrap;">${escapeHtml(plan)}</td>` +
-                            `</tr>`
-                        );
-                        tsvRows.push(`${req}\t${acc}\t${eng}\t${team}\t${plan}`);
+                        cols.push({ val: plan, nowrap: true });
                     }
+
+                    const tdsHtml = cols
+                        .map((c) => `<td style="${cellStyle}${c.nowrap ? "white-space:nowrap;" : ""}">${escapeHtml(c.val)}</td>`)
+                        .join("");
+
+                    htmlRows.push(`<tr>${tdsHtml}</tr>`);
+                    tsvRows.push(cols.map((c) => c.val).join("\t"));
                 });
 
                 htmlRows.push(
