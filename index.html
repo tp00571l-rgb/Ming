@@ -200,6 +200,24 @@
         html.dark .bg-rose-50:hover {
             background-color: rgba(159, 18, 57, 0.48);
         }
+        html.dark .bg-violet-50\/70 {
+            background-color: rgba(91, 33, 182, 0.22);
+        }
+        html.dark .bg-violet-50,
+        html.dark .bg-violet-100 {
+            background-color: rgba(109, 40, 217, 0.36);
+            color: #ede9fe;
+            border-color: rgba(167, 139, 250, 0.5);
+        }
+        html.dark .bg-violet-100:hover,
+        html.dark .bg-violet-50:hover {
+            background-color: rgba(109, 40, 217, 0.52);
+        }
+        html.dark .bg-violet-200 {
+            background-color: rgba(124, 58, 237, 0.52);
+            color: #f5f3ff;
+            border-color: rgba(196, 181, 253, 0.7);
+        }
         html.dark .bg-red-50 {
             background-color: rgba(127, 29, 29, 0.35);
             border-color: rgba(248, 113, 113, 0.45);
@@ -1114,14 +1132,27 @@
         function shortenContractTeam(rawTeam) {
             if (!rawTeam) return "-";
             const hashIndex = rawTeam.indexOf("#");
+            let baseShort = rawTeam;
             if (hashIndex > 0) {
-                return rawTeam.slice(0, hashIndex).trim();
+                baseShort = rawTeam.slice(0, hashIndex).trim();
+            } else {
+                const dashRomIndex = rawTeam.indexOf(" - ");
+                if (dashRomIndex > 0) {
+                    baseShort = rawTeam.slice(0, dashRomIndex).trim();
+                }
             }
-            const dashRomIndex = rawTeam.indexOf(" - ");
-            if (dashRomIndex > 0) {
-                return rawTeam.slice(0, dashRomIndex).trim();
+
+            const normRaw = normalizeMatchText(rawTeam);
+            if (normRaw.includes("rom-ais_บจ.ดับเบิ้ลยู เอ็นพี เวิลด์ไวด์ (bkk)")) {
+                if (normRaw.includes("afpm_ma_afp ma monthly_afpm_ma_monthly (wnp) (bkk)_special1")) {
+                    return `${baseShort} (ทีมใหญ่)`;
+                }
+                if (normRaw.includes("afpl_ma_afp ma monthly_wnp (bkk)_lt")) {
+                    return `${baseShort} (ทีมเล็ก)`;
+                }
             }
-            return rawTeam;
+
+            return baseShort;
         }
 
         function formatDateDisplay(date, fallbackStr) {
@@ -1553,6 +1584,14 @@
                 );
             }
 
+            function isWnpSplitTeam(teamEntry) {
+                const normShort = normalizeMatchText(teamEntry.teamShort);
+                return (
+                    normShort.includes("rom-ais_บจ.ดับเบิ้ลยู เอ็นพี เวิลด์ไวด์ (bkk)") &&
+                    (normShort.includes("(ทีมใหญ่)") || normShort.includes("(ทีมเล็ก)"))
+                );
+            }
+
             if (visibleTeams.length === 0) {
                 const tr = document.createElement("tr");
                 const td = document.createElement("td");
@@ -1569,25 +1608,36 @@
                     const tr = document.createElement("tr");
                     const isSelected = selectedTeamKey === t.teamShort;
                     const isEveningOnly = isEveningFollowupTeam(t);
+                    const isWnpSplit = isWnpSplitTeam(t);
                     if (isSelected) {
                         tr.className = "bg-blue-50/70 transition-colors";
                     } else if (isEveningOnly) {
                         tr.className = "bg-amber-50/70 hover:bg-amber-50 transition-colors";
+                    } else if (isWnpSplit) {
+                        tr.className = "bg-violet-50/70 hover:bg-violet-50 transition-colors";
                     } else {
                         tr.className = "hover:bg-slate-50 transition-colors";
                     }
 
                     // ชื่อทีม (คลิกเพื่อกรอง)
                     const tdTeam = document.createElement("td");
-                    tdTeam.className = isEveningOnly
-                        ? "px-4 py-2.5 font-medium text-slate-900 max-w-md border-l-4 border-l-amber-500"
-                        : "px-4 py-2.5 font-medium text-slate-900 max-w-xs";
+                    if (isEveningOnly) {
+                        tdTeam.className = "px-4 py-2.5 font-medium text-slate-900 max-w-md border-l-4 border-l-amber-500";
+                    } else if (isWnpSplit) {
+                        tdTeam.className = "px-4 py-2.5 font-medium text-slate-900 max-w-md border-l-4 border-l-violet-500";
+                    } else {
+                        tdTeam.className = "px-4 py-2.5 font-medium text-slate-900 max-w-xs";
+                    }
                     const teamBtn = document.createElement("button");
                     teamBtn.type = "button";
                     if (isEveningOnly) {
                         teamBtn.className = isSelected
                             ? "text-left text-xs font-bold text-amber-950 bg-amber-200 border border-amber-500 px-2.5 py-1 rounded-md cursor-pointer truncate max-w-full inline-block transition-colors"
                             : "text-left text-xs font-bold text-amber-950 bg-amber-100 border border-amber-400 hover:bg-amber-200 px-2.5 py-1 rounded-md cursor-pointer truncate max-w-full inline-block transition-colors";
+                    } else if (isWnpSplit) {
+                        teamBtn.className = isSelected
+                            ? "text-left text-xs font-bold text-violet-950 bg-violet-200 border border-violet-500 px-2.5 py-1 rounded-md cursor-pointer whitespace-nowrap inline-block transition-colors"
+                            : "text-left text-xs font-bold text-violet-950 bg-violet-100 border border-violet-400 hover:bg-violet-200 px-2.5 py-1 rounded-md cursor-pointer whitespace-nowrap inline-block transition-colors";
                     } else {
                         teamBtn.className = t.isRelaxTeam
                             ? (isSelected
