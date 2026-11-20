@@ -1,0 +1,22 @@
+FTTH - (ใช้เฉพาะ OS Assigner) Support Activity Fault MEA
+FTTH - (ใช้เฉพาะทีมช่าง 3BB) เพื่อเข้าแก้ไขงานติดตั้ง/งานซ่อมไม่ได้มาตรฐาน
+FTTH - (ใช้เฉพาะ NOC Existing) Signal Quality Low
+FTTH - (ใช้เฉพาะ OS Assigner) งานเก็บอุปกรณ์ SP L3
+FTTH - (ใช้เฉพาะ OS Assigner) Support Operation FTTH
+FTTH - (ใช้เฉพาะ OS Assigner) Support ย้าย Splitter
+FTTH - (ใช้เฉพาะ OS Assigner) Support Stream
+FTTB - (ใช้เฉพาะ OS Assigner) Support Operation FTTB
+FTTH - (ใช้เฉพาะ OS Assigner) Support ย้ายแนวสาย
+FTTH - (ใช้เฉพาะ Engineer Region) ใช้งาน Internet ได้ไม่เสถียร (Disconnected)
+FTTH - (ใช้เฉพาะ OS Assigner) Support Heat Map
+FTTH - (ใช้เฉพาะ NOC) Router Replacement
+FTTH - (ใช้เฉพาะ NOC/OS) เข้าตรวจสอบ Last mile / SP2 (เฉพาะ FBB)
+FTTH - (ใช้เฉพาะ NOC Event Based) 4 Disconnect over criteria, Still disconnect - within 24 hrs after reboot
+FTTH - (Last mile) (เฉพาะ NOC) ส่งติดตั้ง 4G Router ระหว่างรอแก้ไขแนวสาย Fiber Optic
+FTTH - (ใช้เฉพาะ Engineer Region) ส่งช่างเข้า Cleansing Splitter
+FTTH - (ใช้เฉพาะ Engineer Region) ใช้งาน Internet ได้ไม่เสถียร
+FTTB - (ใช้เฉพาะ NOC Event Based) 4 Disconnect over criteria, Still disconnect - within 24 hrs after reboot
+FTTB - (ใช้เฉพาะ Engineer Region) ใช้งาน Internet ได้ไม่เสถียร (Disconnected)
+FTTH - (ใช้เฉพาะ NOC Event Based) 1 Disconnect over criteria, Cannot reboot - IP not change
+FTTR - (ใช้เฉพาะ OS Assigner) งานเก็บอุปกรณ์ SP L3
+FTTH - (ใช้เฉพาะ OS Assigner) Support เก็บสายหย่อน

@@ -264,7 +264,7 @@
             </div>
         </section>
 
-        <!-- กล่องนำเข้าข้อมูล: รองรับอัปโหลดไฟล์ + วางข้อมูลจาก Excel -->
+        <!-- กล่องนำเข้าข้อมูล: รองรับอัปโหลดไฟล์หลายไฟล์หรือลากมาวาง -->
         <section id="import-section" aria-label="นำเข้าข้อมูลใบงาน" class="space-y-3">
             <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv, .tsv, .txt" multiple hidden class="sr-only" />
             <div id="dropZone"
@@ -282,10 +282,10 @@
                     </div>
                     <div>
                         <label for="excelFileInput" class="block text-sm font-semibold text-slate-900 cursor-pointer">
-                            อัปโหลดไฟล์ใบงาน (.xlsx, .xls, .csv, .txt) หรือวางข้อมูลจาก Excel
+                            อัปโหลดไฟล์ใบงาน (.xlsx, .xls, .csv, .txt)
                         </label>
                         <p id="fileMetaText" class="text-xs text-slate-500 mt-0.5">
-                            เลือกไฟล์จากเครื่องได้หลายไฟล์พร้อมกัน (ระบบจะรวมเป็นชุดเดียวก่อนแปลงข้อมูล) ลากมาวาง หรือคัดลอกจาก Excel มาวางได้ทันที
+                            เลือกไฟล์จากเครื่องได้หลายไฟล์พร้อมกัน (ระบบจะรวมเป็นชุดเดียวก่อนแปลงข้อมูล) หรือลากไฟล์มาวางได้ทันที
                         </p>
                     </div>
                 </div>
@@ -295,34 +295,9 @@
                             class="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-100 border border-blue-300 hover:bg-blue-200 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
                         เลือกไฟล์จากเครื่อง
                     </button>
-                    <button type="button" id="togglePasteBtn"
-                            class="px-4 py-2 text-sm font-medium text-indigo-900 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
-                        วางข้อมูลจาก Excel
-                    </button>
                     <button type="button" id="resetDataBtn"
                             class="hidden px-4 py-2 text-sm font-medium text-rose-800 bg-rose-50 border border-rose-200 hover:bg-rose-100 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer">
                         ล้างข้อมูล
-                    </button>
-                </div>
-            </div>
-
-            <!-- กล่องวางข้อมูลแบบ Copy-Paste จาก Excel (เปิด-ปิดได้) -->
-            <div id="pastePanel" class="hidden bg-white border border-slate-200 rounded-xl p-5 space-y-3">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                        <h2 class="text-sm font-semibold text-slate-900">วางข้อมูลตารางจาก Excel หรือไฟล์ .txt (Tab-separated)</h2>
-                        <p class="text-xs text-slate-500">ต้องมีแถวหัวตารางบรรทัดแรก เช่น Product Owner, Request No., Task Status, Plan Arrival Time</p>
-                    </div>
-                    <button type="button" id="closePasteBtn" class="px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 border border-slate-300 hover:bg-slate-200 rounded-lg self-start sm:self-center cursor-pointer transition-colors">
-                        ปิดหน้าต่างวางข้อมูล
-                    </button>
-                </div>
-                <textarea id="pasteTextarea" rows="6" placeholder="วางข้อมูลที่คัดลอกจาก Excel ที่นี่ (Ctrl+V)..."
-                          class="w-full p-3 text-xs font-mono-tabular bg-slate-50 border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"></textarea>
-                <div class="flex items-center justify-end gap-2">
-                    <button type="button" id="processPasteBtn"
-                            class="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-100 border border-blue-300 hover:bg-blue-200 rounded-lg transition-colors whitespace-nowrap cursor-pointer">
-                        แปลงข้อมูลที่วาง
                     </button>
                 </div>
             </div>
@@ -534,7 +509,7 @@
                         <tr>
                             <td colspan="9" class="text-center py-14 px-6 text-slate-500">
                                 <p class="text-sm font-medium text-slate-700">ยังไม่มีข้อมูลใบงานที่นำเข้า</p>
-                                <p class="text-xs text-slate-500 mt-1">เลือกไฟล์ Excel / .txt (TSV) หรือกด "วางข้อมูลจาก Excel" ด้านบนเพื่อเริ่มแปลงข้อมูล</p>
+                                <p class="text-xs text-slate-500 mt-1">เลือกไฟล์ Excel / .txt (TSV) หรือลากไฟล์มาวางด้านบนเพื่อเริ่มแปลงข้อมูล</p>
                             </td>
                         </tr>
                     </tbody>
@@ -575,6 +550,7 @@
         let currentWorkbook = null;
         let currentFileName = "";
         let rawRows = [];
+        let allTransformedJobs = [];
         let transformedJobs = [];
         let activeBucket = "followup"; // followup (Scheduled+Processing) | completed_new (Completed+New) | all
         let selectedTeamKey = "";
@@ -583,11 +559,6 @@
         // DOM Elements
         const fileInput = document.getElementById("excelFileInput");
         const selectFileBtn = document.getElementById("selectFileBtn");
-        const togglePasteBtn = document.getElementById("togglePasteBtn");
-        const closePasteBtn = document.getElementById("closePasteBtn");
-        const pastePanel = document.getElementById("pastePanel");
-        const pasteTextarea = document.getElementById("pasteTextarea");
-        const processPasteBtn = document.getElementById("processPasteBtn");
         const resetDataBtn = document.getElementById("resetDataBtn");
         const dropZone = document.getElementById("dropZone");
         const statusBadge = document.getElementById("statusBadge");
@@ -770,39 +741,11 @@
             errorAlert.classList.remove("flex");
         }
 
-        // ===== การจัดการ Event นำเข้าไฟล์ / วางข้อมูล =====
+        // ===== การจัดการ Event นำเข้าไฟล์ =====
         function openFilePicker() {
             fileInput.click();
         }
         selectFileBtn.addEventListener("click", openFilePicker);
-
-        togglePasteBtn.addEventListener("click", () => {
-            pastePanel.classList.toggle("hidden");
-            if (!pastePanel.classList.contains("hidden")) {
-                pasteTextarea.focus();
-            }
-        });
-        closePasteBtn.addEventListener("click", () => pastePanel.classList.add("hidden"));
-
-        processPasteBtn.addEventListener("click", () => {
-            const text = pasteTextarea.value.trim();
-            if (!text) {
-                showError("ไม่พบข้อมูลที่วาง", "กรุณาวางข้อความตารางจาก Excel หรือไฟล์ .txt ก่อนกดแปลงข้อมูล");
-                return;
-            }
-            hideError();
-            currentWorkbook = null;
-            sheetSelectWrapper.classList.add("hidden");
-            sheetSelectWrapper.classList.remove("flex");
-            const rows = parseDelimitedText(text);
-            if (rows.length === 0) {
-                showError("รูปแบบข้อมูลไม่ถูกต้อง", "ไม่พบแถวข้อมูลที่มีหัวตาราง กรุณาตรวจสอบข้อมูลที่คัดลอกมาอีกครั้ง");
-                return;
-            }
-            currentFileName = "pasted_work_orders";
-            applyParsedRows(rows, "ข้อมูลที่วางจากคลิปบอร์ด", `${rows.length} แถว`);
-            pastePanel.classList.add("hidden");
-        });
 
         dropZone.addEventListener("dragover", (e) => {
             e.preventDefault();
@@ -828,6 +771,7 @@
             currentWorkbook = null;
             currentFileName = "";
             rawRows = [];
+            allTransformedJobs = [];
             transformedJobs = [];
             selectedTeamKey = "";
             teamSummarySearchInput.value = "";
@@ -838,16 +782,15 @@
             ownerFilter.value = "";
             taskStatusFilter.value = "";
             tableSearchInput.value = "";
-            pasteTextarea.value = "";
             hideError();
             statusBadge.textContent = "สถานะ: รอการนำเข้าข้อมูล";
-            fileMetaText.textContent = "เลือกไฟล์จากเครื่องได้หลายไฟล์พร้อมกัน (ระบบจะรวมเป็นชุดเดียวก่อนแปลงข้อมูล) ลากมาวาง หรือคัดลอกจาก Excel มาวางได้ทันที";
+            fileMetaText.textContent = "เลือกไฟล์จากเครื่องได้หลายไฟล์พร้อมกัน (ระบบจะรวมเป็นชุดเดียวก่อนแปลงข้อมูล) หรือลากไฟล์มาวางได้ทันที";
             kpiSection.classList.add("hidden");
             teamSummarySection.classList.add("hidden");
             actionToolbar.classList.add("hidden");
             actionToolbar.classList.remove("flex");
             resetDataBtn.classList.add("hidden");
-            renderEmptyTable("ยังไม่มีข้อมูลใบงานที่นำเข้า", "เลือกไฟล์ Excel / .txt (TSV) หรือกด \"วางข้อมูลจาก Excel\" ด้านบนเพื่อเริ่มแปลงข้อมูล");
+            renderEmptyTable("ยังไม่มีข้อมูลใบงานที่นำเข้า", "เลือกไฟล์ Excel / .txt (TSV) หรือลากไฟล์มาวางด้านบนเพื่อเริ่มแปลงข้อมูล");
         });
 
         // ===== ตัวแยกข้อความ Delimited (TSV / CSV UTF-8) =====
@@ -1219,7 +1162,7 @@
                 cutoff.getDate() === now.getDate();
             const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
-            transformedJobs = rawRows.map((row, idx) => {
+            allTransformedJobs = rawRows.map((row, idx) => {
                 const title = getField(row, ["Title", "Problem", "Detail"]);
                 const requestNo = getField(row, ["Request No.", "Request No", "RequestNo"]);
                 const region = getField(row, ["Region"]);
@@ -1337,23 +1280,59 @@
                     raw: row
                 };
             });
+            transformedJobs = allTransformedJobs;
         }
 
-        const EXCLUDED_CONTRACT_TEAM_KEYWORDS = ["network", "osm", "fsqm"];
+        // รายการข้อความ Title ที่ไม่ต้องนำมาแสดงในระบบทั้งหมด
+        const EXCLUDED_TITLE_PATTERNS = [
+            "FTTH - (ใช้เฉพาะ OS Assigner) Support Activity Fault MEA",
+            "FTTH - (ใช้เฉพาะทีมช่าง 3BB) เพื่อเข้าแก้ไขงานติดตั้ง/งานซ่อมไม่ได้มาตรฐาน",
+            "FTTH - (ใช้เฉพาะ NOC Existing) Signal Quality Low",
+            "FTTH - (ใช้เฉพาะ OS Assigner) งานเก็บอุปกรณ์ SP L3",
+            "FTTH - (ใช้เฉพาะ OS Assigner) Support Operation FTTH",
+            "FTTH - (ใช้เฉพาะ OS Assigner) Support ย้าย Splitter",
+            "FTTH - (ใช้เฉพาะ OS Assigner) Support Stream",
+            "FTTB - (ใช้เฉพาะ OS Assigner) Support Operation FTTB",
+            "FTTH - (ใช้เฉพาะ OS Assigner) Support ย้ายแนวสาย",
+            "FTTH - (ใช้เฉพาะ Engineer Region) ใช้งาน Internet ได้ไม่เสถียร (Disconnected)",
+            "FTTH - (ใช้เฉพาะ OS Assigner) Support Heat Map",
+            "FTTH - (ใช้เฉพาะ NOC) Router Replacement",
+            "FTTH - (ใช้เฉพาะ NOC/OS) เข้าตรวจสอบ Last mile / SP2 (เฉพาะ FBB)",
+            "FTTH - (ใช้เฉพาะ NOC Event Based) 4 Disconnect over criteria, Still disconnect - within 24 hrs after reboot",
+            "FTTH - (Last mile) (เฉพาะ NOC) ส่งติดตั้ง 4G Router ระหว่างรอแก้ไขแนวสาย Fiber Optic",
+            "FTTH - (ใช้เฉพาะ Engineer Region) ส่งช่างเข้า Cleansing Splitter",
+            "FTTH - (ใช้เฉพาะ Engineer Region) ใช้งาน Internet ได้ไม่เสถียร",
+            "FTTB - (ใช้เฉพาะ NOC Event Based) 4 Disconnect over criteria, Still disconnect - within 24 hrs after reboot",
+            "FTTB - (ใช้เฉพาะ Engineer Region) ใช้งาน Internet ได้ไม่เสถียร (Disconnected)",
+            "FTTH - (ใช้เฉพาะ NOC Event Based) 1 Disconnect over criteria, Cannot reboot - IP not change",
+            "FTTR - (ใช้เฉพาะ OS Assigner) งานเก็บอุปกรณ์ SP L3",
+            "FTTH - (ใช้เฉพาะ OS Assigner) Support เก็บสายหย่อน"
+        ];
 
-        function isExcludedContractTeamText(text) {
-            const lower = String(text || "").toLowerCase();
-            return EXCLUDED_CONTRACT_TEAM_KEYWORDS.some((kw) => lower.includes(kw));
+        function normalizeMatchText(str) {
+            return String(str || "")
+                .replace(/\u00A0/g, " ")
+                .replace(/\s+/g, " ")
+                .trim()
+                .toLowerCase();
         }
 
-        function isExcludedContractTeamRow(row) {
-            const contractTeam = getField(row, ["Contract Team", "ContractTeam", "Team"]);
-            return isExcludedContractTeamText(contractTeam);
+        const EXCLUDED_TITLE_NORMALIZED = EXCLUDED_TITLE_PATTERNS.map(normalizeMatchText);
+
+        function isExcludedTitleText(title) {
+            const norm = normalizeMatchText(title);
+            if (!norm) return false;
+            return EXCLUDED_TITLE_NORMALIZED.some((pat) => norm.includes(pat));
+        }
+
+        function isExcludedTitleRow(row) {
+            const title = getField(row, ["Title", "Problem", "Detail"]);
+            return isExcludedTitleText(title);
         }
 
         function applyParsedRows(rows, sourceLabel, metaLabel) {
-            const filteredRows = rows.filter((row) => !isExcludedContractTeamRow(row));
-            const excludedTeamCount = rows.length - filteredRows.length;
+            const filteredRows = rows.filter((row) => !isExcludedTitleRow(row));
+            const excludedTitleCount = rows.length - filteredRows.length;
 
             rawRows = filteredRows;
             selectedTeamKey = "";
@@ -1362,8 +1341,8 @@
             transformAllRows();
             populateFilterOptions();
 
-            const excludedNote = excludedTeamCount > 0
-                ? ` · คัดทีม Network/OSM/FSQM ออก ${excludedTeamCount.toLocaleString("th-TH")} แถว (คงเหลือ ${filteredRows.length.toLocaleString("th-TH")} แถว)`
+            const excludedNote = excludedTitleCount > 0
+                ? ` · คัดงานตามเงื่อนไข Title ออก ${excludedTitleCount.toLocaleString("th-TH")} แถว (คงเหลือ ${filteredRows.length.toLocaleString("th-TH")} แถว)`
                 : "";
 
             statusBadge.textContent = `โหลดสำเร็จ: ${sourceLabel}`;
@@ -1505,14 +1484,38 @@
                 return 0;
             });
 
+            // เรียงลำดับตัวเลือกใน dropdown ตัวกรองทีม: ก-ฮ -> A-Z -> ตัวเลข -> อักษรพิเศษ
+            function getCharSortBucket(str) {
+                const trimmed = String(str || "").trim();
+                if (!trimmed) return 3;
+                const ch = trimmed.charAt(0);
+                if (/[\u0E01-\u0E3A\u0E40-\u0E4E]/.test(ch)) return 0;
+                if (/[A-Za-z]/.test(ch)) return 1;
+                if (/[0-9\u0E50-\u0E59]/.test(ch)) return 2;
+                return 3;
+            }
+
+            function compareTeamFilterLabels(a, b) {
+                const nameA = String(a || "").trim();
+                const nameB = String(b || "").trim();
+                const bucketA = getCharSortBucket(nameA);
+                const bucketB = getCharSortBucket(nameB);
+                if (bucketA !== bucketB) return bucketA - bucketB;
+                if (bucketA === 0) return nameA.localeCompare(nameB, "th", { sensitivity: "base", numeric: true });
+                if (bucketA === 1 || bucketA === 2) return nameA.localeCompare(nameB, "en", { sensitivity: "base", numeric: true });
+                return nameA.localeCompare(nameB);
+            }
+
+            const dropdownTeams = [...allTeams].sort((a, b) => compareTeamFilterLabels(a.teamShort, b.teamShort));
+
             // อัปเดตตัวเลือกใน dropdown ค้นเฉพาะทีม
             const prevSelect = teamSummaryFilterSelect.value;
             teamSummaryFilterSelect.replaceChildren();
             const allOpt = document.createElement("option");
             allOpt.value = "";
-            allOpt.textContent = `ทุกทีมช่าง (${allTeams.length} ทีม)`;
+            allOpt.textContent = `ทุกทีมช่าง (${dropdownTeams.length} ทีม)`;
             teamSummaryFilterSelect.appendChild(allOpt);
-            allTeams.forEach((t) => {
+            dropdownTeams.forEach((t) => {
                 const opt = document.createElement("option");
                 opt.value = t.teamShort;
                 opt.textContent = `${t.teamShort} (${t.jobs.length})`;
@@ -1969,12 +1972,12 @@
             const htmlRows = [];
             const lineSections = [headText, ""];
 
-            // 1. แถวหัวข้อใหญ่บนสุด (ผสานเต็มความกว้างตาราง)
+            // 1. แถวหัวข้อใหญ่บนสุด (ผสานเต็มความกว้างตาราง และใช้ <td> ทั้งหมดเพื่อไม่ให้ Teams/Outlook ดันหัวคอลัมน์ขึ้นเหนือแถวนี้)
             htmlRows.push(
                 `<tr><td colspan="${colCount}" style="${bannerStyle}">${escapeHtml(headText)}</td></tr>`
             );
 
-            // 2. แถวหัวคอลัมน์เพื่อให้อ่านง่ายและช่วยจัดความกว้างคอลัมน์ใน Teams/Excel
+            // 2. แถวหัวคอลัมน์ (วางถัดลงมาใต้ข้อความเน้นย้ำ)
             const headers = [
                 { label: "Request No.", minWidth: "145px" },
                 { label: "Access Number", minWidth: "120px" },
@@ -1987,7 +1990,7 @@
                 headers.push({ label: "วันนัดหมาย", minWidth: "125px" });
             }
             htmlRows.push(
-                `<tr>${headers.map((h) => `<th style="${thStyle}min-width:${h.minWidth};">${escapeHtml(h.label)}</th>`).join("")}</tr>`
+                `<tr>${headers.map((h) => `<td style="${thStyle}min-width:${h.minWidth};">${escapeHtml(h.label)}</td>`).join("")}</tr>`
             );
 
             // 3. แถวแยกตามแต่ละ Slot
@@ -2238,10 +2241,6 @@
             copyRichTable(htmlTable, plainTsv);
         });
 
-        function shouldExcludeFromExport(job) {
-            return isExcludedContractTeamText(`${job.contractTeamRaw || ""} ${job.contractTeamShort || ""}`);
-        }
-
         exportExcelBtn.addEventListener("click", () => {
             const list = getFilteredJobs();
             if (list.length === 0) {
@@ -2253,15 +2252,8 @@
                 return;
             }
 
-            const exportList = list.filter((j) => !shouldExcludeFromExport(j));
-            const excludedCount = list.length - exportList.length;
-
-            if (exportList.length === 0) {
-                showToast("ไม่มีข้อมูลสำหรับส่งออก (รายการทั้งหมดถูกคัดออกตามเงื่อนไข Network / OSM / FSQM)");
-                return;
-            }
-
-            const exportData = exportList.map((j, idx) => ({
+            // เฉพาะปุ่มส่งออก Excel ให้ดึง Contract Team มาทั้งหมด (ไม่มีการตัดทอนหรือคัดทีมออก)
+            const exportData = list.map((j, idx) => ({
                 "ลำดับ": idx + 1,
                 "Request No.": j.requestNo,
                 "Access Number": j.accessNumber,
@@ -2269,14 +2261,12 @@
                 "Processing Status": j.processingStatus,
                 "Product Owner": j.productOwner,
                 "Region": j.region,
-                "กลุ่มทีม": j.contractTeamGroup,
-                "ทีมช่าง (ชื่อย่อ)": j.contractTeamShort,
+                "Contract Team": j.contractTeamRaw,
                 "Field Engineer": j.fieldEngineer,
                 "Contact Phone Number": j.phone,
                 "Plan Arrival Time": j.planThaiTableDisplay,
                 "สถานะติดตาม": `${j.statusCategoryLabel} (${j.timingText})`,
-                "Title": j.title,
-                "Contract Team (เต็ม)": j.contractTeamRaw
+                "Title": j.title
             }));
 
             const ws = XLSX.utils.json_to_sheet(exportData);
@@ -2284,11 +2274,7 @@
             XLSX.utils.book_append_sheet(wb, ws, "ติดตามปิดงาน");
             const dateStamp = new Date().toISOString().slice(0, 10);
             XLSX.writeFile(wb, `followup_work_orders_${activeBucket}_${dateStamp}.xlsx`);
-            if (excludedCount > 0) {
-                showToast(`ส่งออก Excel ${exportList.length.toLocaleString("th-TH")} รายการแล้ว (คัด Network/OSM/FSQM ออก ${excludedCount.toLocaleString("th-TH")} รายการ)`);
-            } else {
-                showToast("ส่งออกไฟล์ Excel เรียบร้อยแล้ว");
-            }
+            showToast(`ส่งออก Excel ${list.length.toLocaleString("th-TH")} รายการเรียบร้อยแล้ว`);
         });
     </script>
 </body>
