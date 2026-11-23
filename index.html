@@ -102,6 +102,23 @@
         html.dark .text-amber-700 {
             color: #fbbf24;
         }
+        html.dark .text-amber-900,
+        html.dark .text-amber-950 {
+            color: #fef3c7;
+        }
+        html.dark .text-rose-800,
+        html.dark .text-rose-900,
+        html.dark .text-rose-950 {
+            color: #ffe4e6;
+        }
+        html.dark .text-sky-900,
+        html.dark .text-sky-950 {
+            color: #e0f2fe;
+        }
+        html.dark .text-indigo-900,
+        html.dark .text-indigo-950 {
+            color: #e0e7ff;
+        }
         html.dark .text-emerald-700 {
             color: #34d399;
         }
@@ -157,6 +174,14 @@
         html.dark .bg-indigo-50:hover {
             background-color: rgba(55, 48, 163, 0.48);
         }
+        html.dark .bg-indigo-100 {
+            background-color: rgba(67, 56, 202, 0.42);
+            color: #e0e7ff;
+            border-color: rgba(129, 140, 248, 0.58);
+        }
+        html.dark .bg-indigo-100:hover {
+            background-color: rgba(67, 56, 202, 0.58);
+        }
         html.dark .bg-emerald-100 {
             background-color: rgba(6, 95, 70, 0.4);
             color: #a7f3d0;
@@ -172,6 +197,14 @@
         }
         html.dark .bg-sky-50:hover {
             background-color: rgba(7, 89, 133, 0.52);
+        }
+        html.dark .bg-sky-100 {
+            background-color: rgba(3, 105, 161, 0.42);
+            color: #e0f2fe;
+            border-color: rgba(56, 189, 248, 0.55);
+        }
+        html.dark .bg-sky-100:hover {
+            background-color: rgba(3, 105, 161, 0.58);
         }
         html.dark .bg-amber-100,
         html.dark .bg-amber-50 {
@@ -246,6 +279,7 @@
                 <a href="#import-section" class="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0">นำเข้าข้อมูล</a>
                 <a href="#team-summary-section" class="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0">สรุปรายทีมช่าง</a>
                 <a href="#workorder-table-section" class="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0">รายการติดตามงาน</a>
+                <a href="#aging-summary-section" class="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0">งานเกินกำหนด</a>
             </nav>
 
             <div class="inline-flex items-center gap-1 p-1 rounded-lg bg-slate-100 border border-slate-200 shrink-0" role="group" aria-label="สลับโหมดสว่างและโหมดมืด">
@@ -544,6 +578,93 @@
             </div>
         </section>
 
+        <!-- ส่วนติดตามงานค้างเกินกำหนด (งานเกิน 30 วัน / 15 วัน / 7 วัน เฉพาะ Scheduled + Processing) -->
+        <section id="aging-summary-section" class="hidden bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">ติดตามงานค้างเกินกำหนด (งานเกิน 30 วัน / 15 วัน / 7 วัน)</h2>
+                    <p class="text-xs text-slate-500">ตรวจสอบเฉพาะงานกลุ่ม Scheduled + Processing ที่ค้างเกินระยะเวลาที่เลือก เพื่อเร่งตามปิดงานรายทีมช่าง</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 shrink-0">
+                    <span id="agingSummaryTotalText"
+                          class="inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-lg bg-rose-50 text-rose-800 border border-rose-200 font-mono-tabular">
+                        รวมงานเกิน 30 วัน: 0 งาน (0 ทีม)
+                    </span>
+                </div>
+            </div>
+
+            <!-- ปุ่มตัวเลือกช่วงเวลาค้างเกิน 30 / 15 / 7 วัน (คลิกเพื่อกรองทันที) -->
+            <div class="px-6 py-5 border-b border-slate-200 bg-white space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto" role="group" aria-label="เลือกช่วงเวลางานค้างเกินกำหนด">
+                    <button type="button" data-aging-days="30"
+                            class="aging-range-btn flex flex-col items-center justify-center rounded-2xl px-5 py-5 border-2 border-rose-500 bg-rose-100 text-rose-950 shadow-sm cursor-pointer transition-all">
+                        <span class="text-base sm:text-lg font-extrabold tracking-tight">งานเกิน 30 วัน</span>
+                        <span id="agingCount30" class="mt-2 text-3xl font-extrabold font-mono-tabular leading-none">0 งาน</span>
+                        <span id="agingTeamsCount30" class="mt-2 inline-block px-2.5 py-0.5 text-xs font-bold rounded-full bg-white text-rose-900 border border-rose-300 font-mono-tabular">0 ทีม</span>
+                    </button>
+
+                    <button type="button" data-aging-days="15"
+                            class="aging-range-btn flex flex-col items-center justify-center rounded-2xl px-5 py-5 border-2 border-slate-300 bg-slate-100 text-slate-900 hover:bg-amber-50 hover:border-amber-400 cursor-pointer transition-all">
+                        <span class="text-base sm:text-lg font-extrabold tracking-tight">งานเกิน 15 วัน</span>
+                        <span id="agingCount15" class="mt-2 text-3xl font-extrabold font-mono-tabular leading-none">0 งาน</span>
+                        <span id="agingTeamsCount15" class="mt-2 inline-block px-2.5 py-0.5 text-xs font-bold rounded-full bg-white text-slate-800 border border-slate-300 font-mono-tabular">0 ทีม</span>
+                    </button>
+
+                    <button type="button" data-aging-days="7"
+                            class="aging-range-btn flex flex-col items-center justify-center rounded-2xl px-5 py-5 border-2 border-slate-300 bg-slate-100 text-slate-900 hover:bg-sky-50 hover:border-sky-400 cursor-pointer transition-all">
+                        <span class="text-base sm:text-lg font-extrabold tracking-tight">งานเกิน 7 วัน</span>
+                        <span id="agingCount7" class="mt-2 text-3xl font-extrabold font-mono-tabular leading-none">0 งาน</span>
+                        <span id="agingTeamsCount7" class="mt-2 inline-block px-2.5 py-0.5 text-xs font-bold rounded-full bg-white text-slate-800 border border-slate-300 font-mono-tabular">0 ทีม</span>
+                    </button>
+                </div>
+
+                <!-- แถบกรองข้อมูลเหมือนหัวข้อ สรุปรายทีมช่างที่ต้องตามปิดงาน -->
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100">
+                    <div class="text-xs font-medium text-slate-600">
+                        แสดงรายชื่อทีมช่าง (Contract Team) ที่มีงาน Scheduled + Processing ค้างเกินตามช่วงเวลาที่เลือก
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="relative min-w-[260px] flex-1 sm:flex-initial">
+                            <svg width="16" height="16" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="11" cy="11" r="8" />
+                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                            </svg>
+                            <input type="search" id="agingSummarySearchInput" placeholder="ค้นหา Request, Access, ช่าง, ทีม, เบอร์..." aria-label="ค้นหา Request, Access, ช่าง, ทีม ในตารางงานเกินกำหนด"
+                                   class="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                        </div>
+                        <select id="agingSummaryRegionFilter" aria-label="เลือกกรองภูมิภาคในตารางงานเกินกำหนด"
+                                class="px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600">
+                            <option value="">ทุกภูมิภาค (Region)</option>
+                        </select>
+                        <select id="agingSummaryFilterSelect" aria-label="เลือกกรองทีมช่างในตารางงานเกินกำหนด"
+                                class="px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 max-w-[240px] focus:outline-none focus:ring-2 focus:ring-blue-600">
+                            <option value="">ทุกทีมช่าง (แสดงทั้งหมด)</option>
+                        </select>
+                        <button type="button" id="clearAgingFilterBtn" class="hidden px-3 py-1.5 text-xs font-semibold text-amber-900 bg-amber-100 border border-amber-300 hover:bg-amber-200 rounded-lg whitespace-nowrap cursor-pointer transition-colors">
+                            ล้างตัวกรองทีม
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto max-h-[360px]">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead class="sticky top-0 z-10 bg-slate-100 border-b border-slate-200 text-xs font-bold text-slate-700">
+                        <tr>
+                            <th class="px-4 py-2.5 whitespace-nowrap">ทีมช่าง (Contract Team)</th>
+                            <th class="px-4 py-2.5 whitespace-nowrap">ภูมิภาค</th>
+                            <th id="agingCountColHeader" class="px-4 py-2.5 whitespace-nowrap text-right">งานเกิน 30 วัน</th>
+                            <th class="px-4 py-2.5 whitespace-nowrap text-right">Processing</th>
+                            <th class="px-4 py-2.5 whitespace-nowrap text-right">Scheduled</th>
+                            <th class="px-4 py-2.5 whitespace-nowrap">งานค้างเก่าสุด</th>
+                            <th class="px-4 py-2.5 whitespace-nowrap text-right">ดำเนินการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="agingSummaryBody" class="divide-y divide-slate-200 text-slate-700"></tbody>
+                </table>
+            </div>
+        </section>
+
     </main>
 
     <!-- หน้าต่างแสดงรายละเอียดใบงานฉบับเต็ม -->
@@ -581,6 +702,7 @@
         let transformedJobs = [];
         let activeBucket = "followup"; // followup (Scheduled+Processing) | completed_new (Completed+New) | all
         let selectedTeamKey = "";
+        let activeAgingDays = 30;
         let currentModalJob = null;
 
         // DOM Elements
@@ -596,6 +718,7 @@
 
         const kpiSection = document.getElementById("kpiSection");
         const teamSummarySection = document.getElementById("team-summary-section");
+        const agingSummarySection = document.getElementById("aging-summary-section");
         const actionToolbar = document.getElementById("actionToolbar");
         const tableBody = document.getElementById("tableBody");
         const teamSummaryBody = document.getElementById("teamSummaryBody");
@@ -604,6 +727,14 @@
         const teamSummaryFilterSelect = document.getElementById("teamSummaryFilterSelect");
         const clearTeamFilterBtn = document.getElementById("clearTeamFilterBtn");
         const activeTeamBadge = document.getElementById("activeTeamBadge");
+
+        const agingSummaryBody = document.getElementById("agingSummaryBody");
+        const agingSummarySearchInput = document.getElementById("agingSummarySearchInput");
+        const agingSummaryRegionFilter = document.getElementById("agingSummaryRegionFilter");
+        const agingSummaryFilterSelect = document.getElementById("agingSummaryFilterSelect");
+        const clearAgingFilterBtn = document.getElementById("clearAgingFilterBtn");
+        const agingSummaryTotalText = document.getElementById("agingSummaryTotalText");
+        const agingCountColHeader = document.getElementById("agingCountColHeader");
 
         const cutoffInput = document.getElementById("cutoffInput");
         const setNowCutoffBtn = document.getElementById("setNowCutoffBtn");
@@ -801,9 +932,13 @@
             allTransformedJobs = [];
             transformedJobs = [];
             selectedTeamKey = "";
+            activeAgingDays = 30;
             teamSummarySearchInput.value = "";
             teamSummaryRegionFilter.value = "";
             teamSummaryFilterSelect.value = "";
+            agingSummarySearchInput.value = "";
+            agingSummaryRegionFilter.value = "";
+            agingSummaryFilterSelect.value = "";
             teamScopeFilter.value = "";
             regionFilter.value = "";
             ownerFilter.value = "";
@@ -814,6 +949,7 @@
             fileMetaText.textContent = "เลือกไฟล์จากเครื่องได้หลายไฟล์พร้อมกัน (ระบบจะรวมเป็นชุดเดียวก่อนแปลงข้อมูล) หรือลากไฟล์มาวางได้ทันที";
             kpiSection.classList.add("hidden");
             teamSummarySection.classList.add("hidden");
+            agingSummarySection.classList.add("hidden");
             actionToolbar.classList.add("hidden");
             actionToolbar.classList.remove("flex");
             resetDataBtn.classList.add("hidden");
@@ -1122,8 +1258,17 @@
 
         const RELAX_TEAM_COMPACT_KEYS = RELAX_TEAM_PATTERNS.map(compactTeamMatchText);
 
+        function isSeparateRelaxContractTeam(rawTeam) {
+            if (!rawTeam) return false;
+            const rawStr = String(rawTeam);
+            return rawStr.includes("เตชัส") || rawStr.includes("อัครวัสส์");
+        }
+
         function isRelaxContractTeam(rawTeam) {
             if (!rawTeam) return false;
+            if (isSeparateRelaxContractTeam(rawTeam)) {
+                return true;
+            }
             const compactRaw = compactTeamMatchText(rawTeam);
             if (!compactRaw) return false;
             return RELAX_TEAM_COMPACT_KEYS.some((key) => compactRaw.includes(key));
@@ -1220,8 +1365,9 @@
                 const longitude = getField(row, ["Longitude", "Lng", "Lon"]);
 
                 const contractTeamShort = shortenContractTeam(contractTeamRaw);
+                const isSeparateRelaxTeam = isSeparateRelaxContractTeam(contractTeamRaw);
                 const isRelaxTeam = isRelaxContractTeam(contractTeamRaw);
-                const contractTeamGroup = isRelaxTeam ? "ทีมรีแลค" : contractTeamShort;
+                const contractTeamGroup = (isRelaxTeam && !isSeparateRelaxTeam) ? "ทีมรีแลค" : contractTeamShort;
                 const planDate = parsePlanDate(planArrivalRaw);
                 const slotInfo = getTimeSlotInfo(planDate);
                 const statusLower = taskStatus.toLowerCase();
@@ -1297,6 +1443,7 @@
                     contractTeamRaw,
                     contractTeamShort,
                     isRelaxTeam,
+                    isSeparateRelaxTeam,
                     contractTeamGroup,
                     planArrivalRaw,
                     planDate,
@@ -1376,8 +1523,12 @@
 
             rawRows = filteredRows;
             selectedTeamKey = "";
+            activeAgingDays = 30;
             teamSummarySearchInput.value = "";
             teamSummaryRegionFilter.value = "";
+            agingSummarySearchInput.value = "";
+            agingSummaryRegionFilter.value = "";
+            agingSummaryFilterSelect.value = "";
             transformAllRows();
             populateFilterOptions();
 
@@ -1391,6 +1542,7 @@
             kpiSection.classList.remove("hidden");
             kpiSection.classList.add("grid");
             teamSummarySection.classList.remove("hidden");
+            agingSummarySection.classList.remove("hidden");
             actionToolbar.classList.remove("hidden");
             actionToolbar.classList.add("flex");
             resetDataBtn.classList.remove("hidden");
@@ -1457,6 +1609,171 @@
 
             renderTeamSummary(followupJobs);
             renderWorkOrderTable();
+            renderAgingSummary(followupJobs);
+        }
+
+        // เรียงลำดับตัวเลือกใน dropdown ตัวกรองทีม: ก-ฮ -> A-Z -> ตัวเลข -> อักษรพิเศษ
+        function getCharSortBucket(str) {
+            const trimmed = String(str || "").trim();
+            if (!trimmed) return 3;
+            const ch = trimmed.charAt(0);
+            if (/[\u0E01-\u0E3A\u0E40-\u0E4E]/.test(ch)) return 0;
+            if (/[A-Za-z]/.test(ch)) return 1;
+            if (/[0-9\u0E50-\u0E59]/.test(ch)) return 2;
+            return 3;
+        }
+
+        function compareTeamFilterLabels(a, b) {
+            const nameA = String(a || "").trim();
+            const nameB = String(b || "").trim();
+            const bucketA = getCharSortBucket(nameA);
+            const bucketB = getCharSortBucket(nameB);
+            if (bucketA !== bucketB) return bucketA - bucketB;
+            if (bucketA === 0) return nameA.localeCompare(nameB, "th", { sensitivity: "base", numeric: true });
+            if (bucketA === 1 || bucketA === 2) return nameA.localeCompare(nameB, "en", { sensitivity: "base", numeric: true });
+            return nameA.localeCompare(nameB);
+        }
+
+        function isEveningFollowupTeam(teamEntry) {
+            if (teamEntry.teamShort === "ทีมรีแลค") return false;
+            const texts = [teamEntry.teamShort, ...Array.from(teamEntry.rawTeams || [])]
+                .map(normalizeMatchText)
+                .filter(Boolean);
+            return texts.some((txt) =>
+                txt.includes("rom-ais") &&
+                (txt.includes("อัครวัสส์ คอร์ปอเรชั่น (bkk)") || txt.includes("เตชัส (ประเทศไทย) (bkk)"))
+            );
+        }
+
+        function isWnpSplitTeam(teamEntry) {
+            const normShort = normalizeMatchText(teamEntry.teamShort);
+            return (
+                normShort.includes("rom-ais_บจ.ดับเบิ้ลยู เอ็นพี เวิลด์ไวด์ (bkk)") &&
+                (normShort.includes("(ทีมใหญ่)") || normShort.includes("(ทีมเล็ก)"))
+            );
+        }
+
+        function buildTeamEntryList(jobs) {
+            const teamMap = new Map();
+            jobs.forEach((job) => {
+                const key = job.contractTeamGroup || "-";
+                if (!teamMap.has(key)) {
+                    teamMap.set(key, {
+                        teamShort: key,
+                        isRelaxTeam: job.isRelaxTeam,
+                        isSeparateRelaxTeam: Boolean(job.isSeparateRelaxTeam),
+                        subTeams: new Set(),
+                        rawTeams: new Set(),
+                        regions: new Set(),
+                        jobs: [],
+                        processingCount: 0,
+                        scheduledCount: 0,
+                        oldestPlan: null,
+                        maxDiffDays: 0
+                    });
+                }
+                const entry = teamMap.get(key);
+                if (job.isSeparateRelaxTeam) entry.isSeparateRelaxTeam = true;
+                if (job.contractTeamShort) entry.subTeams.add(job.contractTeamShort);
+                if (job.contractTeamRaw) entry.rawTeams.add(job.contractTeamRaw);
+                if (job.region) entry.regions.add(job.region);
+                entry.jobs.push(job);
+                const st = job.taskStatus.toLowerCase();
+                if (st === "processing") entry.processingCount++;
+                if (st === "scheduled") entry.scheduledCount++;
+                if (job.planDate && (!entry.oldestPlan || job.planDate < entry.oldestPlan)) {
+                    entry.oldestPlan = job.planDate;
+                }
+                if (job.planDate && job.diffDays > entry.maxDiffDays) {
+                    entry.maxDiffDays = job.diffDays;
+                }
+            });
+
+            return Array.from(teamMap.values()).sort((a, b) => {
+                if (a.isRelaxTeam !== b.isRelaxTeam) return a.isRelaxTeam ? -1 : 1;
+                if (b.jobs.length !== a.jobs.length) return b.jobs.length - a.jobs.length;
+                if (a.oldestPlan && b.oldestPlan) return a.oldestPlan - b.oldestPlan;
+                return 0;
+            });
+        }
+
+        function createTeamCellContent(t, isSelected, onTeamClick) {
+            const tdTeam = document.createElement("td");
+            const isEveningOnly = isEveningFollowupTeam(t);
+            const isWnpSplit = isWnpSplitTeam(t);
+
+            if (isEveningOnly) {
+                tdTeam.className = "px-4 py-2.5 font-medium text-slate-900 max-w-md border-l-4 border-l-amber-500";
+            } else if (isWnpSplit) {
+                tdTeam.className = "px-4 py-2.5 font-medium text-slate-900 max-w-md border-l-4 border-l-violet-500";
+            } else {
+                tdTeam.className = "px-4 py-2.5 font-medium text-slate-900 max-w-xs";
+            }
+
+            const teamBtn = document.createElement("button");
+            teamBtn.type = "button";
+            if (isEveningOnly) {
+                teamBtn.className = isSelected
+                    ? "text-left text-xs font-bold text-amber-950 bg-amber-200 border border-amber-500 px-2.5 py-1 rounded-md cursor-pointer truncate max-w-full inline-block transition-colors"
+                    : "text-left text-xs font-bold text-amber-950 bg-amber-100 border border-amber-400 hover:bg-amber-200 px-2.5 py-1 rounded-md cursor-pointer truncate max-w-full inline-block transition-colors";
+            } else if (isWnpSplit) {
+                teamBtn.className = isSelected
+                    ? "text-left text-xs font-bold text-violet-950 bg-violet-200 border border-violet-500 px-2.5 py-1 rounded-md cursor-pointer whitespace-nowrap inline-block transition-colors"
+                    : "text-left text-xs font-bold text-violet-950 bg-violet-100 border border-violet-400 hover:bg-violet-200 px-2.5 py-1 rounded-md cursor-pointer whitespace-nowrap inline-block transition-colors";
+            } else {
+                teamBtn.className = t.isRelaxTeam
+                    ? (isSelected
+                        ? "text-left text-xs font-bold text-blue-950 bg-blue-200 border border-blue-400 px-2.5 py-1 rounded-md cursor-pointer truncate max-w-full inline-block transition-colors"
+                        : "text-left text-xs font-bold text-blue-900 bg-blue-50 border border-blue-200 hover:bg-blue-100 px-2.5 py-1 rounded-md cursor-pointer truncate max-w-full inline-block transition-colors")
+                    : (isSelected
+                        ? "text-left text-xs font-semibold text-blue-950 bg-blue-100 border border-blue-300 px-2.5 py-1 rounded-md cursor-pointer truncate max-w-full inline-block transition-colors"
+                        : "text-left text-xs font-medium text-slate-800 bg-slate-100 border border-slate-200 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-800 px-2.5 py-1 rounded-md cursor-pointer truncate max-w-full inline-block transition-colors");
+            }
+            teamBtn.textContent = t.teamShort;
+            teamBtn.title = Array.from(t.rawTeams).join("\n");
+            teamBtn.addEventListener("click", onTeamClick);
+            tdTeam.appendChild(teamBtn);
+
+            if (isEveningOnly || t.isSeparateRelaxTeam) {
+                const badgeWrap = document.createElement("div");
+                badgeWrap.className = "mt-1 flex flex-wrap items-center gap-1.5";
+                if (t.isRelaxTeam) {
+                    const relaxTag = document.createElement("span");
+                    relaxTag.className = "inline-block text-xs font-bold text-blue-900 bg-blue-100 border border-blue-300 px-2 py-0.5 rounded-md whitespace-nowrap";
+                    relaxTag.textContent = "ทีมรีแลค";
+                    badgeWrap.appendChild(relaxTag);
+                }
+                if (isEveningOnly) {
+                    const eveningNote = document.createElement("span");
+                    eveningNote.className = "inline-block text-xs font-bold text-rose-800 bg-rose-100 border border-rose-300 px-2 py-0.5 rounded-md whitespace-nowrap";
+                    eveningNote.textContent = "(ตามงานแค่ ช่วงเย็น)";
+                    badgeWrap.appendChild(eveningNote);
+                }
+                tdTeam.appendChild(badgeWrap);
+            } else if (t.isRelaxTeam) {
+                const subInfo = document.createElement("div");
+                subInfo.className = "text-xs text-slate-500 truncate mt-0.5";
+                subInfo.textContent = `รวม ${t.subTeams.size} ทีมย่อย: ${Array.from(t.subTeams).join(", ")}`;
+                subInfo.title = Array.from(t.subTeams).join("\n");
+                tdTeam.appendChild(subInfo);
+            }
+
+            return { tdTeam, isEveningOnly, isWnpSplit };
+        }
+
+        function syncTeamScopeWithSelectedKey() {
+            if (selectedTeamKey === "ทีมรีแลค") {
+                teamScopeFilter.value = "relax";
+            } else if (selectedTeamKey) {
+                const selectedObj = transformedJobs.find((j) => j.contractTeamGroup === selectedTeamKey);
+                if (selectedObj && selectedObj.isRelaxTeam && teamScopeFilter.value === "other") {
+                    teamScopeFilter.value = "";
+                } else if (selectedObj && !selectedObj.isRelaxTeam && teamScopeFilter.value === "relax") {
+                    teamScopeFilter.value = "";
+                }
+            } else if (teamScopeFilter.value === "relax") {
+                teamScopeFilter.value = "";
+            }
         }
 
         function renderTeamSummary(followupJobs) {
@@ -1488,64 +1805,7 @@
                 return true;
             });
 
-            const teamMap = new Map();
-            scopedJobs.forEach((job) => {
-                const key = job.contractTeamGroup || "-";
-                if (!teamMap.has(key)) {
-                    teamMap.set(key, {
-                        teamShort: key,
-                        isRelaxTeam: job.isRelaxTeam,
-                        subTeams: new Set(),
-                        rawTeams: new Set(),
-                        regions: new Set(),
-                        jobs: [],
-                        processingCount: 0,
-                        scheduledCount: 0,
-                        oldestPlan: null
-                    });
-                }
-                const entry = teamMap.get(key);
-                if (job.contractTeamShort) entry.subTeams.add(job.contractTeamShort);
-                if (job.contractTeamRaw) entry.rawTeams.add(job.contractTeamRaw);
-                if (job.region) entry.regions.add(job.region);
-                entry.jobs.push(job);
-                const st = job.taskStatus.toLowerCase();
-                if (st === "processing") entry.processingCount++;
-                if (st === "scheduled") entry.scheduledCount++;
-                if (job.planDate && (!entry.oldestPlan || job.planDate < entry.oldestPlan)) {
-                    entry.oldestPlan = job.planDate;
-                }
-            });
-
-            const allTeams = Array.from(teamMap.values()).sort((a, b) => {
-                if (a.isRelaxTeam !== b.isRelaxTeam) return a.isRelaxTeam ? -1 : 1;
-                if (b.jobs.length !== a.jobs.length) return b.jobs.length - a.jobs.length;
-                if (a.oldestPlan && b.oldestPlan) return a.oldestPlan - b.oldestPlan;
-                return 0;
-            });
-
-            // เรียงลำดับตัวเลือกใน dropdown ตัวกรองทีม: ก-ฮ -> A-Z -> ตัวเลข -> อักษรพิเศษ
-            function getCharSortBucket(str) {
-                const trimmed = String(str || "").trim();
-                if (!trimmed) return 3;
-                const ch = trimmed.charAt(0);
-                if (/[\u0E01-\u0E3A\u0E40-\u0E4E]/.test(ch)) return 0;
-                if (/[A-Za-z]/.test(ch)) return 1;
-                if (/[0-9\u0E50-\u0E59]/.test(ch)) return 2;
-                return 3;
-            }
-
-            function compareTeamFilterLabels(a, b) {
-                const nameA = String(a || "").trim();
-                const nameB = String(b || "").trim();
-                const bucketA = getCharSortBucket(nameA);
-                const bucketB = getCharSortBucket(nameB);
-                if (bucketA !== bucketB) return bucketA - bucketB;
-                if (bucketA === 0) return nameA.localeCompare(nameB, "th", { sensitivity: "base", numeric: true });
-                if (bucketA === 1 || bucketA === 2) return nameA.localeCompare(nameB, "en", { sensitivity: "base", numeric: true });
-                return nameA.localeCompare(nameB);
-            }
-
+            const allTeams = buildTeamEntryList(scopedJobs);
             const dropdownTeams = [...allTeams].sort((a, b) => compareTeamFilterLabels(a.teamShort, b.teamShort));
 
             // อัปเดตตัวเลือกใน dropdown ค้นเฉพาะทีม
@@ -1574,24 +1834,6 @@
                 return true;
             });
 
-            function isEveningFollowupTeam(teamEntry) {
-                const texts = [teamEntry.teamShort, ...Array.from(teamEntry.rawTeams || [])]
-                    .map(normalizeMatchText)
-                    .filter(Boolean);
-                return texts.some((txt) =>
-                    txt.includes("rom-ais") &&
-                    (txt.includes("อัครวัสส์ คอร์ปอเรชั่น (bkk)") || txt.includes("เตชัส (ประเทศไทย) (bkk)"))
-                );
-            }
-
-            function isWnpSplitTeam(teamEntry) {
-                const normShort = normalizeMatchText(teamEntry.teamShort);
-                return (
-                    normShort.includes("rom-ais_บจ.ดับเบิ้ลยู เอ็นพี เวิลด์ไวด์ (bkk)") &&
-                    (normShort.includes("(ทีมใหญ่)") || normShort.includes("(ทีมเล็ก)"))
-                );
-            }
-
             if (visibleTeams.length === 0) {
                 const tr = document.createElement("tr");
                 const td = document.createElement("td");
@@ -1607,8 +1849,17 @@
                 visibleTeams.forEach((t) => {
                     const tr = document.createElement("tr");
                     const isSelected = selectedTeamKey === t.teamShort;
-                    const isEveningOnly = isEveningFollowupTeam(t);
-                    const isWnpSplit = isWnpSplitTeam(t);
+                    const { tdTeam, isEveningOnly, isWnpSplit } = createTeamCellContent(t, isSelected, () => {
+                        selectedTeamKey = selectedTeamKey === t.teamShort ? "" : t.teamShort;
+                        teamSummaryFilterSelect.value = selectedTeamKey;
+                        syncTeamScopeWithSelectedKey();
+                        if (selectedTeamKey && teamSummaryRegionFilter.value) {
+                            regionFilter.value = teamSummaryRegionFilter.value;
+                        }
+                        activeBucket = "followup";
+                        updateAllViews();
+                    });
+
                     if (isSelected) {
                         tr.className = "bg-blue-50/70 transition-colors";
                     } else if (isEveningOnly) {
@@ -1619,67 +1870,6 @@
                         tr.className = "hover:bg-slate-50 transition-colors";
                     }
 
-                    // ชื่อทีม (คลิกเพื่อกรอง)
-                    const tdTeam = document.createElement("td");
-                    if (isEveningOnly) {
-                        tdTeam.className = "px-4 py-2.5 font-medium text-slate-900 max-w-md border-l-4 border-l-amber-500";
-                    } else if (isWnpSplit) {
-                        tdTeam.className = "px-4 py-2.5 font-medium text-slate-900 max-w-md border-l-4 border-l-violet-500";
-                    } else {
-                        tdTeam.className = "px-4 py-2.5 font-medium text-slate-900 max-w-xs";
-                    }
-                    const teamBtn = document.createElement("button");
-                    teamBtn.type = "button";
-                    if (isEveningOnly) {
-                        teamBtn.className = isSelected
-                            ? "text-left text-xs font-bold text-amber-950 bg-amber-200 border border-amber-500 px-2.5 py-1 rounded-md cursor-pointer truncate max-w-full inline-block transition-colors"
-                            : "text-left text-xs font-bold text-amber-950 bg-amber-100 border border-amber-400 hover:bg-amber-200 px-2.5 py-1 rounded-md cursor-pointer truncate max-w-full inline-block transition-colors";
-                    } else if (isWnpSplit) {
-                        teamBtn.className = isSelected
-                            ? "text-left text-xs font-bold text-violet-950 bg-violet-200 border border-violet-500 px-2.5 py-1 rounded-md cursor-pointer whitespace-nowrap inline-block transition-colors"
-                            : "text-left text-xs font-bold text-violet-950 bg-violet-100 border border-violet-400 hover:bg-violet-200 px-2.5 py-1 rounded-md cursor-pointer whitespace-nowrap inline-block transition-colors";
-                    } else {
-                        teamBtn.className = t.isRelaxTeam
-                            ? (isSelected
-                                ? "text-left text-xs font-bold text-blue-950 bg-blue-200 border border-blue-400 px-2.5 py-1 rounded-md cursor-pointer truncate max-w-full inline-block transition-colors"
-                                : "text-left text-xs font-bold text-blue-900 bg-blue-50 border border-blue-200 hover:bg-blue-100 px-2.5 py-1 rounded-md cursor-pointer truncate max-w-full inline-block transition-colors")
-                            : (isSelected
-                                ? "text-left text-xs font-semibold text-blue-950 bg-blue-100 border border-blue-300 px-2.5 py-1 rounded-md cursor-pointer truncate max-w-full inline-block transition-colors"
-                                : "text-left text-xs font-medium text-slate-800 bg-slate-100 border border-slate-200 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-800 px-2.5 py-1 rounded-md cursor-pointer truncate max-w-full inline-block transition-colors");
-                    }
-                    teamBtn.textContent = t.teamShort;
-                    teamBtn.title = Array.from(t.rawTeams).join("\n");
-                    teamBtn.addEventListener("click", () => {
-                        selectedTeamKey = selectedTeamKey === t.teamShort ? "" : t.teamShort;
-                        teamSummaryFilterSelect.value = selectedTeamKey;
-                        if (selectedTeamKey === "ทีมรีแลค") {
-                            teamScopeFilter.value = "relax";
-                        } else if (!selectedTeamKey && teamScopeFilter.value === "relax") {
-                            teamScopeFilter.value = "";
-                        }
-                        if (selectedTeamKey && teamSummaryRegionFilter.value) {
-                            regionFilter.value = teamSummaryRegionFilter.value;
-                        }
-                        activeBucket = "followup";
-                        updateAllViews();
-                    });
-                    tdTeam.appendChild(teamBtn);
-                    if (isEveningOnly) {
-                        const eveningNoteWrap = document.createElement("div");
-                        eveningNoteWrap.className = "mt-1";
-                        const eveningNote = document.createElement("span");
-                        eveningNote.className = "inline-block text-xs font-bold text-rose-800 bg-rose-100 border border-rose-300 px-2 py-0.5 rounded-md whitespace-nowrap";
-                        eveningNote.textContent = "(ตามงานแค่ ช่วงเย็น)";
-                        eveningNoteWrap.appendChild(eveningNote);
-                        tdTeam.appendChild(eveningNoteWrap);
-                    }
-                    if (t.isRelaxTeam) {
-                        const subInfo = document.createElement("div");
-                        subInfo.className = "text-xs text-slate-500 truncate mt-0.5";
-                        subInfo.textContent = `รวม ${t.subTeams.size} ทีมย่อย: ${Array.from(t.subTeams).join(", ")}`;
-                        subInfo.title = Array.from(t.subTeams).join("\n");
-                        tdTeam.appendChild(subInfo);
-                    }
                     tr.appendChild(tdTeam);
 
                     // Region
@@ -1742,6 +1932,196 @@
                 activeTeamBadge.classList.remove("hidden");
             } else {
                 activeTeamBadge.classList.add("hidden");
+            }
+        }
+
+        function renderAgingSummary(followupJobs) {
+            agingSummaryBody.replaceChildren();
+
+            // คำนวณยอดงานเกิน 30 / 15 / 7 วัน เฉพาะ Scheduled + Processing
+            const buckets = [30, 15, 7];
+            buckets.forEach((days) => {
+                const matched = followupJobs.filter((j) => j.planDate && j.diffDays > days);
+                const teamCount = new Set(matched.map((j) => j.contractTeamGroup || "-")).size;
+                document.getElementById(`agingCount${days}`).textContent = `${matched.length.toLocaleString("th-TH")} งาน`;
+                document.getElementById(`agingTeamsCount${days}`).textContent = `${teamCount.toLocaleString("th-TH")} ทีม`;
+            });
+
+            // อัปเดตสไตล์ปุ่มการ์ดที่ถูกเลือก (30 วัน / 15 วัน / 7 วัน)
+            const activeCardClasses = {
+                30: "aging-range-btn flex flex-col items-center justify-center rounded-2xl px-5 py-5 border-2 border-rose-500 bg-rose-100 text-rose-950 shadow-sm cursor-pointer transition-all",
+                15: "aging-range-btn flex flex-col items-center justify-center rounded-2xl px-5 py-5 border-2 border-amber-500 bg-amber-100 text-amber-950 shadow-sm cursor-pointer transition-all",
+                7: "aging-range-btn flex flex-col items-center justify-center rounded-2xl px-5 py-5 border-2 border-sky-500 bg-sky-100 text-sky-950 shadow-sm cursor-pointer transition-all"
+            };
+            const inactiveCardClasses = {
+                30: "aging-range-btn flex flex-col items-center justify-center rounded-2xl px-5 py-5 border-2 border-slate-300 bg-slate-100 text-slate-900 hover:bg-rose-50 hover:border-rose-400 cursor-pointer transition-all",
+                15: "aging-range-btn flex flex-col items-center justify-center rounded-2xl px-5 py-5 border-2 border-slate-300 bg-slate-100 text-slate-900 hover:bg-amber-50 hover:border-amber-400 cursor-pointer transition-all",
+                7: "aging-range-btn flex flex-col items-center justify-center rounded-2xl px-5 py-5 border-2 border-slate-300 bg-slate-100 text-slate-900 hover:bg-sky-50 hover:border-sky-400 cursor-pointer transition-all"
+            };
+            const activeBadgeClasses = {
+                30: "mt-2 inline-block px-2.5 py-0.5 text-xs font-bold rounded-full bg-white text-rose-900 border border-rose-300 font-mono-tabular",
+                15: "mt-2 inline-block px-2.5 py-0.5 text-xs font-bold rounded-full bg-white text-amber-900 border border-amber-300 font-mono-tabular",
+                7: "mt-2 inline-block px-2.5 py-0.5 text-xs font-bold rounded-full bg-white text-sky-900 border border-sky-300 font-mono-tabular"
+            };
+            const inactiveBadgeClass = "mt-2 inline-block px-2.5 py-0.5 text-xs font-bold rounded-full bg-white text-slate-800 border border-slate-300 font-mono-tabular";
+
+            document.querySelectorAll(".aging-range-btn").forEach((btn) => {
+                const days = Number(btn.dataset.agingDays);
+                const isActive = days === activeAgingDays;
+                btn.className = isActive ? activeCardClasses[days] : inactiveCardClasses[days];
+                btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+                const teamBadge = document.getElementById(`agingTeamsCount${days}`);
+                if (teamBadge) {
+                    teamBadge.className = isActive ? activeBadgeClasses[days] : inactiveBadgeClass;
+                }
+            });
+
+            agingCountColHeader.textContent = `งานเกิน ${activeAgingDays} วัน`;
+
+            // กรองเฉพาะงาน Scheduled + Processing ที่ค้างเกิน activeAgingDays วัน
+            const thresholdJobs = followupJobs.filter((j) => j.planDate && j.diffDays > activeAgingDays);
+            const agingRegions = Array.from(new Set(thresholdJobs.map((j) => j.region).filter(Boolean))).sort();
+            fillSelect(agingSummaryRegionFilter, "ทุกภูมิภาค (Region)", agingRegions);
+
+            const selectedRegion = agingSummaryRegionFilter.value;
+            const keyword = agingSummarySearchInput.value.trim().toLowerCase();
+
+            const scopedJobs = thresholdJobs.filter((job) => {
+                if (selectedRegion && job.region !== selectedRegion) return false;
+                if (keyword) {
+                    const haystack = [
+                        job.requestNo,
+                        job.accessNumber,
+                        job.fieldEngineer,
+                        job.contractTeamGroup,
+                        job.contractTeamShort,
+                        job.contractTeamRaw,
+                        job.phone,
+                        job.region,
+                        job.taskStatus,
+                        job.processingStatus,
+                        job.title
+                    ].join(" ").toLowerCase();
+                    if (!haystack.includes(keyword)) return false;
+                }
+                return true;
+            });
+
+            const allAgingTeams = buildTeamEntryList(scopedJobs);
+            const dropdownTeams = [...allAgingTeams].sort((a, b) => compareTeamFilterLabels(a.teamShort, b.teamShort));
+
+            const prevSelect = agingSummaryFilterSelect.value;
+            agingSummaryFilterSelect.replaceChildren();
+            const allOpt = document.createElement("option");
+            allOpt.value = "";
+            allOpt.textContent = `ทุกทีมช่าง (${dropdownTeams.length} ทีม)`;
+            agingSummaryFilterSelect.appendChild(allOpt);
+            dropdownTeams.forEach((t) => {
+                const opt = document.createElement("option");
+                opt.value = t.teamShort;
+                opt.textContent = `${t.teamShort} (${t.jobs.length})`;
+                agingSummaryFilterSelect.appendChild(opt);
+            });
+            if (prevSelect && allAgingTeams.some((t) => t.teamShort === prevSelect)) {
+                agingSummaryFilterSelect.value = prevSelect;
+            }
+
+            const teamDropdownVal = agingSummaryFilterSelect.value;
+            const visibleTeams = allAgingTeams.filter((t) => {
+                if (teamDropdownVal && t.teamShort !== teamDropdownVal) return false;
+                return true;
+            });
+
+            const visibleJobCount = visibleTeams.reduce((sum, t) => sum + t.jobs.length, 0);
+            agingSummaryTotalText.textContent = `รวมงานเกิน ${activeAgingDays} วัน: ${visibleJobCount.toLocaleString("th-TH")} งาน (${visibleTeams.length.toLocaleString("th-TH")} ทีม)`;
+
+            if (visibleTeams.length === 0) {
+                const tr = document.createElement("tr");
+                const td = document.createElement("td");
+                td.colSpan = 7;
+                td.className = "text-center py-8 text-xs text-slate-500";
+                td.textContent = thresholdJobs.length === 0
+                    ? `ไม่มีทีมช่างที่มีงาน Scheduled + Processing ค้างเกิน ${activeAgingDays} วัน`
+                    : "ไม่พบข้อมูลทีมหรือใบงานที่ตรงกับคำค้นหาในหัวข้อนี้";
+                tr.appendChild(td);
+                agingSummaryBody.appendChild(tr);
+            } else {
+                const frag = document.createDocumentFragment();
+                visibleTeams.forEach((t) => {
+                    const tr = document.createElement("tr");
+                    const isSelected = selectedTeamKey === t.teamShort;
+                    const { tdTeam, isEveningOnly, isWnpSplit } = createTeamCellContent(t, isSelected, () => {
+                        selectedTeamKey = selectedTeamKey === t.teamShort ? "" : t.teamShort;
+                        teamSummaryFilterSelect.value = selectedTeamKey;
+                        syncTeamScopeWithSelectedKey();
+                        if (selectedTeamKey && agingSummaryRegionFilter.value) {
+                            regionFilter.value = agingSummaryRegionFilter.value;
+                        }
+                        activeBucket = "followup";
+                        updateAllViews();
+                    });
+
+                    if (isSelected) {
+                        tr.className = "bg-blue-50/70 transition-colors";
+                    } else if (isEveningOnly) {
+                        tr.className = "bg-amber-50/70 hover:bg-amber-50 transition-colors";
+                    } else if (isWnpSplit) {
+                        tr.className = "bg-violet-50/70 hover:bg-violet-50 transition-colors";
+                    } else {
+                        tr.className = "hover:bg-slate-50 transition-colors";
+                    }
+
+                    tr.appendChild(tdTeam);
+
+                    const tdReg = document.createElement("td");
+                    tdReg.className = "px-4 py-2.5 text-xs text-slate-600 whitespace-nowrap font-mono-tabular";
+                    tdReg.textContent = Array.from(t.regions).join(", ") || "-";
+                    tr.appendChild(tdReg);
+
+                    const tdTotal = document.createElement("td");
+                    tdTotal.className = "px-4 py-2.5 text-right font-bold text-red-600 font-mono-tabular whitespace-nowrap";
+                    tdTotal.textContent = String(t.jobs.length);
+                    tr.appendChild(tdTotal);
+
+                    const tdProc = document.createElement("td");
+                    tdProc.className = "px-4 py-2.5 text-right text-slate-700 font-mono-tabular whitespace-nowrap";
+                    tdProc.textContent = String(t.processingCount);
+                    tr.appendChild(tdProc);
+
+                    const tdSched = document.createElement("td");
+                    tdSched.className = "px-4 py-2.5 text-right text-slate-700 font-mono-tabular whitespace-nowrap";
+                    tdSched.textContent = String(t.scheduledCount);
+                    tr.appendChild(tdSched);
+
+                    const tdOld = document.createElement("td");
+                    tdOld.className = "px-4 py-2.5 text-xs text-slate-600 font-mono-tabular whitespace-nowrap";
+                    tdOld.textContent = t.oldestPlan
+                        ? `${formatDateDisplay(t.oldestPlan, "")} (${t.maxDiffDays} วัน)`
+                        : "-";
+                    tr.appendChild(tdOld);
+
+                    const tdAction = document.createElement("td");
+                    tdAction.className = "px-4 py-2.5 text-right whitespace-nowrap";
+                    const copyBtn = document.createElement("button");
+                    copyBtn.type = "button";
+                    copyBtn.className = "px-2.5 py-1 text-xs font-medium text-blue-900 bg-blue-50 border border-blue-200 hover:bg-blue-100 rounded-md cursor-pointer transition-colors";
+                    copyBtn.textContent = "คัดลอกตามทีม";
+                    copyBtn.addEventListener("click", () => {
+                        const { htmlTable, plainTsv } = buildFollowupTablePayload(t.jobs, { agingMode: true });
+                        copyRichTable(htmlTable, plainTsv);
+                    });
+                    tdAction.appendChild(copyBtn);
+                    tr.appendChild(tdAction);
+
+                    frag.appendChild(tr);
+                });
+                agingSummaryBody.appendChild(frag);
+            }
+
+            if (agingSummarySearchInput.value.trim() || agingSummaryFilterSelect.value || agingSummaryRegionFilter.value) {
+                clearAgingFilterBtn.classList.remove("hidden");
+            } else {
+                clearAgingFilterBtn.classList.add("hidden");
             }
         }
 
@@ -1832,13 +2212,29 @@
             tableBody.replaceChildren();
             const frag = document.createDocumentFragment();
 
+            function isEveningWorkOrderTeam(job) {
+                const texts = [job.contractTeamRaw, job.contractTeamShort, job.contractTeamGroup]
+                    .map(normalizeMatchText)
+                    .filter(Boolean);
+                return texts.some((txt) =>
+                    txt.includes("บจ.อัครวัสส์ คอร์ปอเรชั่น") ||
+                    txt.includes("อัครวัสส์ คอร์ปอเรชั่น") ||
+                    txt.includes("บจ.เตชัส")
+                );
+            }
+
             list.forEach((job, idx) => {
+                const isEveningFollowupRow = job.statusGroup === "scheduled_processing" && isEveningWorkOrderTeam(job);
                 const tr = document.createElement("tr");
-                tr.className = "hover:bg-blue-50/40 transition-colors align-top";
+                tr.className = isEveningFollowupRow
+                    ? "bg-amber-50/70 hover:bg-amber-50 transition-colors align-top"
+                    : "hover:bg-blue-50/40 transition-colors align-top";
 
                 // 1. ลำดับ (#)
                 const tdIdx = document.createElement("td");
-                tdIdx.className = "px-3 py-3 text-center text-xs text-slate-400 font-mono-tabular bg-slate-50/50";
+                tdIdx.className = isEveningFollowupRow
+                    ? "px-3 py-3 text-center text-xs text-slate-400 font-mono-tabular bg-slate-50/50 border-l-4 border-l-amber-500"
+                    : "px-3 py-3 text-center text-xs text-slate-400 font-mono-tabular bg-slate-50/50";
                 tdIdx.textContent = String(idx + 1);
                 tr.appendChild(tdIdx);
 
@@ -1916,17 +2312,48 @@
 
                 // 6. ทีมช่าง (Contract Team)
                 const tdTeam = document.createElement("td");
-                tdTeam.className = "px-3 py-3 max-w-[240px]";
+                tdTeam.className = "px-3 py-3 max-w-[260px]";
                 if (job.isRelaxTeam) {
                     const relaxLabel = document.createElement("div");
                     relaxLabel.className = "text-xs font-bold text-blue-700";
                     relaxLabel.textContent = "ทีมรีแลค";
-                    const subTeamDiv = document.createElement("div");
-                    subTeamDiv.className = "text-xs text-slate-500 truncate mt-0.5";
-                    subTeamDiv.textContent = job.contractTeamShort;
-                    subTeamDiv.title = job.contractTeamRaw;
                     tdTeam.appendChild(relaxLabel);
-                    tdTeam.appendChild(subTeamDiv);
+
+                    if (isEveningFollowupRow) {
+                        const teamTag = document.createElement("div");
+                        teamTag.className = "inline-block text-xs font-bold text-amber-950 bg-amber-100 border border-amber-400 px-2 py-0.5 rounded-md truncate max-w-full mt-0.5";
+                        teamTag.textContent = job.contractTeamShort;
+                        teamTag.title = job.contractTeamRaw;
+                        tdTeam.appendChild(teamTag);
+
+                        const eveningNoteWrap = document.createElement("div");
+                        eveningNoteWrap.className = "mt-1";
+                        const eveningNote = document.createElement("span");
+                        eveningNote.className = "inline-block text-xs font-bold text-rose-800 bg-rose-100 border border-rose-300 px-2 py-0.5 rounded-md whitespace-nowrap";
+                        eveningNote.textContent = "(ตามงานแค่ ช่วงเย็น)";
+                        eveningNoteWrap.appendChild(eveningNote);
+                        tdTeam.appendChild(eveningNoteWrap);
+                    } else {
+                        const subTeamDiv = document.createElement("div");
+                        subTeamDiv.className = "text-xs text-slate-500 truncate mt-0.5";
+                        subTeamDiv.textContent = job.contractTeamShort;
+                        subTeamDiv.title = job.contractTeamRaw;
+                        tdTeam.appendChild(subTeamDiv);
+                    }
+                } else if (isEveningFollowupRow) {
+                    const teamTag = document.createElement("div");
+                    teamTag.className = "inline-block text-xs font-bold text-amber-950 bg-amber-100 border border-amber-400 px-2 py-0.5 rounded-md truncate max-w-full";
+                    teamTag.textContent = job.contractTeamShort;
+                    teamTag.title = job.contractTeamRaw;
+                    tdTeam.appendChild(teamTag);
+
+                    const eveningNoteWrap = document.createElement("div");
+                    eveningNoteWrap.className = "mt-1";
+                    const eveningNote = document.createElement("span");
+                    eveningNote.className = "inline-block text-xs font-bold text-rose-800 bg-rose-100 border border-rose-300 px-2 py-0.5 rounded-md whitespace-nowrap";
+                    eveningNote.textContent = "(ตามงานแค่ ช่วงเย็น)";
+                    eveningNoteWrap.appendChild(eveningNote);
+                    tdTeam.appendChild(eveningNoteWrap);
                 } else {
                     const teamDiv = document.createElement("div");
                     teamDiv.className = "text-xs font-medium text-slate-900 truncate";
@@ -2024,9 +2451,10 @@
             return getDayDiffFromCutoff(todayDate, job.planDate) > 0;
         }
 
-        function buildFollowupTablePayload(jobs) {
+        function buildFollowupTablePayload(jobs, options = {}) {
+            const isAgingMode = Boolean(options && options.agingMode);
             const sorted = [...jobs].sort((a, b) => {
-                if (a.slotInfo.order !== b.slotInfo.order) {
+                if (!isAgingMode && a.slotInfo.order !== b.slotInfo.order) {
                     return a.slotInfo.order - b.slotInfo.order;
                 }
                 if (a.planDate && b.planDate) return a.planDate - b.planDate;
@@ -2036,19 +2464,10 @@
             const todayDate = new Date();
             // BKK ปกติ: คัดลอกเฉพาะ Request No., Access, ช่างผู้รับผิดชอบ (เพิ่มวันที่เฉพาะงานเลยวันปัจจุบัน)
             // ยกเว้น BKK ที่มีคำว่า TTTBB ในทีมช่าง (Contract Team) ให้แสดงทีมช่างในตารางด้วย
+            // และในโหมดงานค้างเกินกำหนด (agingMode): แสดงคอลัมน์วันนัดหมายเสมอ (ตัดเวลาออก) พร้อมต่อท้ายด้วย (ค้างปิดงาน X วัน) และไม่แยกแถวช่วงเวลา Slot
             const showTeamCol = sorted.some(shouldShowTeamForJob);
-            const showDateCol = sorted.some((j) => !isBkkRegionJob(j) || isJobPastToday(j, todayDate));
+            const showDateCol = isAgingMode || sorted.some((j) => !isBkkRegionJob(j) || isJobPastToday(j, todayDate));
             const colCount = 3 + (showTeamCol ? 1 : 0) + (showDateCol ? 1 : 0);
-
-            // จัดกลุ่มตาม Slot
-            const slotGroups = new Map();
-            sorted.forEach((job) => {
-                const key = job.slotInfo.label;
-                if (!slotGroups.has(key)) {
-                    slotGroups.set(key, []);
-                }
-                slotGroups.get(key).push(job);
-            });
 
             const headText = "เน้นย้ำ งานซ่อมบำรุง (MA) ทีมช่างดำเนินการปิดงานบน LMR และ SOA ภายใน Slot หลังแก้ไขปัญหาเรียบร้อยแล้ว";
             const footerLines = [
@@ -2080,72 +2499,96 @@
                 headers.push({ label: "ทีมช่าง (Contract Team)", minWidth: "260px" });
             }
             if (showDateCol) {
-                headers.push({ label: "วันนัดหมาย", minWidth: "125px" });
+                headers.push({ label: "วันนัดหมาย", minWidth: isAgingMode ? "175px" : "125px" });
             }
             htmlRows.push(
                 `<tr>${headers.map((h) => `<td style="${thStyle}min-width:${h.minWidth};">${escapeHtml(h.label)}</td>`).join("")}</tr>`
             );
 
-            // 3. แถวแยกตามแต่ละ Slot
-            slotGroups.forEach((groupJobs, slotLabel) => {
-                const cleanSlotTitle = slotLabel.replace(/\*/g, "").replace(/\n/g, " ").trim();
+            function appendJobRow(j, jobIdx) {
+                const req = j.requestNo || "-";
+                const acc = j.accessNumber || "-";
+                const eng = j.fieldEngineer || "-";
+                const pastToday = isJobPastToday(j, todayDate);
+                const rowBg = jobIdx % 2 === 0 ? "#ffffff" : "#f8fafc";
+                const baseTdStyle = `border:1px solid #cbd5e1;background-color:${rowBg};padding:8px 12px;vertical-align:top;text-align:left;`;
 
-                htmlRows.push(
-                    `<tr><td colspan="${colCount}" style="${slotStyle}">${escapeHtml(cleanSlotTitle)} (${groupJobs.length} งาน)</td></tr>`
-                );
+                const cols = [
+                    { val: req, style: `${baseTdStyle}white-space:nowrap;min-width:145px;font-weight:700;color:#1d4ed8;` },
+                    { val: acc, style: `${baseTdStyle}white-space:nowrap;min-width:120px;color:#0f172a;` },
+                    { val: eng, style: `${baseTdStyle}min-width:220px;color:#0f172a;` }
+                ];
 
-                lineSections.push(`📌 ${cleanSlotTitle} (${groupJobs.length} งาน)`);
-                lineSections.push("━━━━━━━━━━━━━━");
+                let teamVal = "";
+                if (showTeamCol) {
+                    teamVal = shouldShowTeamForJob(j)
+                        ? (j.contractTeamRaw || j.contractTeamShort || "-")
+                        : "";
+                    cols.push({ val: teamVal, style: `${baseTdStyle}min-width:260px;color:#334155;font-size:12px;` });
+                }
 
-                groupJobs.forEach((j, jobIdx) => {
-                    const req = j.requestNo || "-";
-                    const acc = j.accessNumber || "-";
-                    const eng = j.fieldEngineer || "-";
-                    const pastToday = isJobPastToday(j, todayDate);
-                    const rowBg = jobIdx % 2 === 0 ? "#ffffff" : "#f8fafc";
-                    const baseTdStyle = `border:1px solid #cbd5e1;background-color:${rowBg};padding:8px 12px;vertical-align:top;text-align:left;`;
-
-                    const cols = [
-                        { val: req, style: `${baseTdStyle}white-space:nowrap;min-width:145px;font-weight:700;color:#1d4ed8;` },
-                        { val: acc, style: `${baseTdStyle}white-space:nowrap;min-width:120px;color:#0f172a;` },
-                        { val: eng, style: `${baseTdStyle}min-width:220px;color:#0f172a;` }
-                    ];
-
-                    let teamVal = "";
-                    if (showTeamCol) {
-                        teamVal = shouldShowTeamForJob(j)
-                            ? (j.contractTeamRaw || j.contractTeamShort || "-")
-                            : "";
-                        cols.push({ val: teamVal, style: `${baseTdStyle}min-width:260px;color:#334155;font-size:12px;` });
-                    }
-
-                    let planVal = "";
-                    if (showDateCol) {
+                let planVal = "";
+                if (showDateCol) {
+                    if (isAgingMode) {
+                        const dateOnly = j.planThaiDateOnly || "-";
+                        planVal = j.planDate
+                            ? `${dateOnly} (ค้างปิดงาน ${j.diffDays} วัน)`
+                            : dateOnly;
+                    } else {
                         planVal = isBkkRegionJob(j)
                             ? (pastToday ? (j.planThaiDateOnly || "-") : "")
                             : (j.planThaiTableDisplay || "-");
-                        const dateColor = planVal ? "#b91c1c;font-weight:600" : "#64748b";
-                        cols.push({ val: planVal, style: `${baseTdStyle}white-space:nowrap;min-width:125px;color:${dateColor};` });
                     }
+                    const dateColor = planVal ? "#b91c1c;font-weight:600" : "#64748b";
+                    cols.push({ val: planVal, style: `${baseTdStyle}white-space:nowrap;min-width:${isAgingMode ? "175px" : "125px"};color:${dateColor};` });
+                }
 
-                    const tdsHtml = cols
-                        .map((c) => `<td style="${c.style}">${escapeHtml(c.val)}</td>`)
-                        .join("");
+                const tdsHtml = cols
+                    .map((c) => `<td style="${c.style}">${escapeHtml(c.val)}</td>`)
+                    .join("");
 
-                    htmlRows.push(`<tr>${tdsHtml}</tr>`);
+                htmlRows.push(`<tr>${tdsHtml}</tr>`);
 
-                    // รูปแบบข้อความสำหรับวางใน LINE ให้อ่านง่าย แยกบรรทัดและเว้นช่วงชัดเจน
-                    lineSections.push(`${jobIdx + 1}. ${req} | ${acc}`);
-                    lineSections.push(`   ช่าง: ${eng}`);
-                    if (showTeamCol && teamVal) {
-                        lineSections.push(`   ทีม: ${teamVal}`);
+                // รูปแบบข้อความสำหรับวางใน LINE ให้อ่านง่าย แยกบรรทัดและเว้นช่วงชัดเจน
+                lineSections.push(`${jobIdx + 1}. ${req} | ${acc}`);
+                lineSections.push(`   ช่าง: ${eng}`);
+                if (showTeamCol && teamVal) {
+                    lineSections.push(`   ทีม: ${teamVal}`);
+                }
+                if (showDateCol && planVal) {
+                    lineSections.push(`   นัด: ${planVal}`);
+                }
+                lineSections.push("");
+            }
+
+            if (isAgingMode) {
+                // 3. ในส่วนติดตามงานค้างเกินกำหนด: เอาช่วงเวลา Slot ออก แสดงรายการเรียงตามวันนัดหมายเก่าสุดก่อน
+                lineSections.push("━━━━━━━━━━━━━━");
+                sorted.forEach((j, jobIdx) => appendJobRow(j, jobIdx));
+            } else {
+                // 3. แถวแยกตามแต่ละ Slot
+                const slotGroups = new Map();
+                sorted.forEach((job) => {
+                    const key = job.slotInfo.label;
+                    if (!slotGroups.has(key)) {
+                        slotGroups.set(key, []);
                     }
-                    if (showDateCol && planVal) {
-                        lineSections.push(`   นัด: ${planVal}`);
-                    }
-                    lineSections.push("");
+                    slotGroups.get(key).push(job);
                 });
-            });
+
+                slotGroups.forEach((groupJobs, slotLabel) => {
+                    const cleanSlotTitle = slotLabel.replace(/\*/g, "").replace(/\n/g, " ").trim();
+
+                    htmlRows.push(
+                        `<tr><td colspan="${colCount}" style="${slotStyle}">${escapeHtml(cleanSlotTitle)} (${groupJobs.length} งาน)</td></tr>`
+                    );
+
+                    lineSections.push(`📌 ${cleanSlotTitle} (${groupJobs.length} งาน)`);
+                    lineSections.push("━━━━━━━━━━━━━━");
+
+                    groupJobs.forEach((j, jobIdx) => appendJobRow(j, jobIdx));
+                });
+            }
 
             // 4. แถวหมายเหตุด้านล่าง (คงข้อความเดิมครบถ้วน)
             lineSections.push("━━━━━━━━━━━━━━");
@@ -2253,11 +2696,7 @@
 
         teamSummaryFilterSelect.addEventListener("change", () => {
             selectedTeamKey = teamSummaryFilterSelect.value;
-            if (selectedTeamKey === "ทีมรีแลค") {
-                teamScopeFilter.value = "relax";
-            } else if (!selectedTeamKey && teamScopeFilter.value === "relax") {
-                teamScopeFilter.value = "";
-            }
+            syncTeamScopeWithSelectedKey();
             if (selectedTeamKey) {
                 if (teamSummaryRegionFilter.value) {
                     regionFilter.value = teamSummaryRegionFilter.value;
@@ -2274,6 +2713,37 @@
             teamSummaryFilterSelect.value = "";
             teamScopeFilter.value = "";
             updateAllViews();
+        });
+
+        document.querySelectorAll(".aging-range-btn").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                activeAgingDays = Number(btn.dataset.agingDays) || 30;
+                const followupJobs = transformedJobs.filter((j) => j.statusGroup === "scheduled_processing");
+                renderAgingSummary(followupJobs);
+            });
+        });
+
+        agingSummarySearchInput.addEventListener("input", () => {
+            const followupJobs = transformedJobs.filter((j) => j.statusGroup === "scheduled_processing");
+            renderAgingSummary(followupJobs);
+        });
+
+        agingSummaryRegionFilter.addEventListener("change", () => {
+            const followupJobs = transformedJobs.filter((j) => j.statusGroup === "scheduled_processing");
+            renderAgingSummary(followupJobs);
+        });
+
+        agingSummaryFilterSelect.addEventListener("change", () => {
+            const followupJobs = transformedJobs.filter((j) => j.statusGroup === "scheduled_processing");
+            renderAgingSummary(followupJobs);
+        });
+
+        clearAgingFilterBtn.addEventListener("click", () => {
+            agingSummarySearchInput.value = "";
+            agingSummaryRegionFilter.value = "";
+            agingSummaryFilterSelect.value = "";
+            const followupJobs = transformedJobs.filter((j) => j.statusGroup === "scheduled_processing");
+            renderAgingSummary(followupJobs);
         });
 
         cutoffInput.addEventListener("change", () => {
@@ -2294,10 +2764,15 @@
         teamScopeFilter.addEventListener("change", () => {
             if (teamScopeFilter.value === "relax") {
                 selectedTeamKey = "";
-                teamSummaryFilterSelect.value = "ทีมรีแลค";
+                teamSummaryFilterSelect.value = "";
             } else if (teamScopeFilter.value === "other") {
-                if (selectedTeamKey === "ทีมรีแลค") selectedTeamKey = "";
-                if (teamSummaryFilterSelect.value === "ทีมรีแลค") teamSummaryFilterSelect.value = "";
+                if (selectedTeamKey) {
+                    const selectedObj = transformedJobs.find((j) => j.contractTeamGroup === selectedTeamKey);
+                    if (selectedObj && selectedObj.isRelaxTeam) {
+                        selectedTeamKey = "";
+                        teamSummaryFilterSelect.value = "";
+                    }
+                }
             } else {
                 selectedTeamKey = "";
                 teamSummaryFilterSelect.value = "";
