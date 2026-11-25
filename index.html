@@ -2820,24 +2820,44 @@
                 return;
             }
 
-            // เฉพาะปุ่มส่งออก Excel ให้ดึง Contract Team มาทั้งหมด (ไม่มีการตัดทอนหรือคัดทีมออก)
-            const exportData = list.map((j, idx) => ({
-                "ลำดับ": idx + 1,
+            // ล็อคหัวตารางและลำดับคอลัมน์เฉพาะตอนส่งออก Excel (เอาคอลัมน์ # / ลำดับ ออก และดึง Contract Team มาทั้งหมด)
+            const excelHeaders = [
+                "Product Owner",
+                "Title",
+                "Request No.",
+                "Region",
+                "Access Number",
+                "Task Status",
+                "Field Engineer",
+                "Contract Team",
+                "Plan Arrival Time",
+                "Address",
+                "Processing Status",
+                "Contact Phone Number",
+                "Area Name",
+                "Latitude",
+                "Longitude"
+            ];
+
+            const exportData = list.map((j) => ({
+                "Product Owner": j.productOwner,
+                "Title": j.title,
                 "Request No.": j.requestNo,
+                "Region": j.region,
                 "Access Number": j.accessNumber,
                 "Task Status": j.taskStatus,
-                "Processing Status": j.processingStatus,
-                "Product Owner": j.productOwner,
-                "Region": j.region,
-                "Contract Team": j.contractTeamRaw,
                 "Field Engineer": j.fieldEngineer,
-                "Contact Phone Number": j.phone,
+                "Contract Team": j.contractTeamRaw,
                 "Plan Arrival Time": j.planThaiTableDisplay,
-                "สถานะติดตาม": `${j.statusCategoryLabel} (${j.timingText})`,
-                "Title": j.title
+                "Address": j.address,
+                "Processing Status": j.processingStatus,
+                "Contact Phone Number": j.phone,
+                "Area Name": j.areaName,
+                "Latitude": j.latitude,
+                "Longitude": j.longitude
             }));
 
-            const ws = XLSX.utils.json_to_sheet(exportData);
+            const ws = XLSX.utils.json_to_sheet(exportData, { header: excelHeaders });
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "ติดตามปิดงาน");
             const dateStamp = new Date().toISOString().slice(0, 10);
