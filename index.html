@@ -2809,6 +2809,55 @@
             copyRichTable(htmlTable, plainTsv);
         });
 
+        function cleanExcelCellText(val) {
+            return String(val ?? "")
+                .replace(/\u00A0/g, " ")
+                .replace(/\r?\n+/g, " ")
+                .trim();
+        }
+
+        function isNewerOrHigherPriorityJob(candidate, existing) {
+            if (candidate.isCompleted !== existing.isCompleted) {
+                return candidate.isCompleted;
+            }
+            if (candidate.planDate && existing.planDate) {
+                const timeDiff = candidate.planDate.getTime() - existing.planDate.getTime();
+                if (timeDiff !== 0) return timeDiff > 0;
+            } else if (candidate.planDate && !existing.planDate) {
+                return true;
+            }
+            return candidate.rowIndex > existing.rowIndex;
+        }
+
+        function deduplicateJobsForExcel(jobs) {
+            const dedupMap = new Map();
+            let skippedEmpty = 0;
+
+            jobs.forEach((j) => {
+                const reqNorm = normalizeMatchText(j.requestNo);
+                const accNorm = normalizeMatchText(j.accessNumber);
+                if (!reqNorm && !accNorm) {
+                    skippedEmpty++;
+                    return;
+                }
+                const teamNorm = normalizeMatchText(j.contractTeamRaw || j.contractTeamShort);
+                const conflictKey = `${reqNorm}|||${teamNorm}`;
+
+                if (!dedupMap.has(conflictKey)) {
+                    dedupMap.set(conflictKey, j);
+                } else {
+                    const existing = dedupMap.get(conflictKey);
+                    if (isNewerOrHigherPriorityJob(j, existing)) {
+                        dedupMap.set(conflictKey, j);
+                    }
+                }
+            });
+
+            const uniqueJobs = Array.from(dedupMap.values());
+            const removedDuplicates = jobs.length - uniqueJobs.length - skippedEmpty;
+            return { uniqueJobs, removedDuplicates, skippedEmpty };
+        }
+
         exportExcelBtn.addEventListener("click", () => {
             const list = getFilteredJobs();
             if (list.length === 0) {
@@ -2817,6 +2866,14 @@
             }
             if (typeof XLSX === "undefined") {
                 showError("ไม่สามารถส่งออก Excel ได้", "ไม่พบไลบรารี SheetJS ในเบราว์เซอร์");
+                return;
+            }
+
+            // ตัดรายการที่ซ้ำกันบนคู่คีย์ (Request No. + Contract Team) ออกก่อนส่งออก
+            // เพื่อป้องกัน Error 21000 (ON CONFLICT DO UPDATE command cannot affect row a second time) เมื่ออัปโหลดขึ้นระบบฐานข้อมูล
+            const { uniqueJobs, removedDuplicates, skippedEmpty } = deduplicateJobsForExcel(list);
+            if (uniqueJobs.length === 0) {
+                showToast("ไม่มีข้อมูลที่สมบูรณ์สำหรับส่งออก");
                 return;
             }
 
@@ -2839,22 +2896,22 @@
                 "Longitude"
             ];
 
-            const exportData = list.map((j) => ({
-                "Product Owner": j.productOwner,
-                "Title": j.title,
-                "Request No.": j.requestNo,
-                "Region": j.region,
-                "Access Number": j.accessNumber,
-                "Task Status": j.taskStatus,
-                "Field Engineer": j.fieldEngineer,
-                "Contract Team": j.contractTeamRaw,
-                "Plan Arrival Time": j.planThaiTableDisplay,
-                "Address": j.address,
-                "Processing Status": j.processingStatus,
-                "Contact Phone Number": j.phone,
-                "Area Name": j.areaName,
-                "Latitude": j.latitude,
-                "Longitude": j.longitude
+            const exportData = uniqueJobs.map((j) => ({
+                "Product Owner": cleanExcelCellText(j.productOwner),
+                "Title": cleanExcelCellText(j.title),
+                "Request No.": cleanExcelCellText(j.requestNo),
+                "Region": cleanExcelCellText(j.region),
+                "Access Number": cleanExcelCellText(j.accessNumber),
+                "Task Status": cleanExcelCellText(j.taskStatus),
+                "Field Engineer": cleanExcelCellText(j.fieldEngineer),
+                "Contract Team": cleanExcelCellText(j.contractTeamRaw),
+                "Plan Arrival Time": cleanExcelCellText(j.planThaiTableDisplay),
+                "Address": cleanExcelCellText(j.address),
+                "Processing Status": cleanExcelCellText(j.processingStatus),
+                "Contact Phone Number": cleanExcelCellText(j.phone),
+                "Area Name": cleanExcelCellText(j.areaName),
+                "Latitude": cleanExcelCellText(j.latitude),
+                "Longitude": cleanExcelCellText(j.longitude)
             }));
 
             const ws = XLSX.utils.json_to_sheet(exportData, { header: excelHeaders });
@@ -2862,7 +2919,12 @@
             XLSX.utils.book_append_sheet(wb, ws, "ติดตามปิดงาน");
             const dateStamp = new Date().toISOString().slice(0, 10);
             XLSX.writeFile(wb, `followup_work_orders_${activeBucket}_${dateStamp}.xlsx`);
-            showToast(`ส่งออก Excel ${list.length.toLocaleString("th-TH")} รายการเรียบร้อยแล้ว`);
+
+            const cleanedTotal = removedDuplicates + skippedEmpty;
+            const note = cleanedTotal > 0
+                ? ` (ตัดข้อมูลซ้ำ/แถวว่างออก ${cleanedTotal.toLocaleString("th-TH")} รายการ)`
+                : "";
+            showToast(`ส่งออก Excel ${uniqueJobs.length.toLocaleString("th-TH")} รายการเรียบร้อยแล้ว${note}`);
         });
     </script>
 </body>
