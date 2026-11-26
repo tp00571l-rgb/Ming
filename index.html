@@ -95,6 +95,9 @@
         html.dark .text-blue-600 {
             color: #60a5fa;
         }
+        html.dark .text-blue-900 {
+            color: #dbeafe;
+        }
         html.dark .text-red-700,
         html.dark .text-red-600 {
             color: #f87171;
@@ -128,8 +131,20 @@
         html.dark .hover\:bg-slate-50:hover {
             background-color: #1e293b;
         }
+        html.dark .hover\:bg-slate-100:hover {
+            background-color: #1e293b;
+        }
         html.dark .hover\:bg-slate-200:hover {
             background-color: #334155;
+        }
+        html.dark .hover\:bg-sky-50:hover {
+            background-color: rgba(7, 89, 133, 0.45);
+        }
+        html.dark .hover\:bg-sky-200:hover {
+            background-color: rgba(3, 105, 161, 0.65);
+        }
+        html.dark .hover\:border-sky-300:hover {
+            border-color: rgba(56, 189, 248, 0.55);
         }
         html.dark .hover\:bg-blue-50\/40:hover {
             background-color: rgba(30, 58, 138, 0.25);
@@ -426,6 +441,10 @@
                             class="px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 max-w-[240px] focus:outline-none focus:ring-2 focus:ring-blue-600">
                         <option value="">ทุกทีมช่าง (แสดงทั้งหมด)</option>
                     </select>
+                    <button type="button" id="teamSummaryLosBtn" aria-pressed="false"
+                            class="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-sky-50 hover:border-sky-300 rounded-lg whitespace-nowrap cursor-pointer transition-colors">
+                        กรอง Title: Los
+                    </button>
                     <button type="button" id="clearTeamFilterBtn" class="hidden px-3 py-1.5 text-xs font-semibold text-amber-900 bg-amber-100 border border-amber-300 hover:bg-amber-200 rounded-lg whitespace-nowrap cursor-pointer transition-colors">
                         ล้างตัวกรองทีม
                     </button>
@@ -514,6 +533,11 @@
                         <option value="other">ทีมอื่น ๆ (ไม่ใช่ทีมรีแลค)</option>
                     </select>
 
+                    <button type="button" id="tableLosFilterBtn" aria-pressed="false"
+                            class="px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 hover:bg-sky-50 hover:border-sky-300 rounded-lg whitespace-nowrap cursor-pointer transition-colors">
+                        กรอง Title: Los
+                    </button>
+
                     <button type="button" id="clearTableFiltersBtn"
                             class="px-3 py-2 text-xs font-semibold text-amber-900 bg-amber-100 border border-amber-300 hover:bg-amber-200 rounded-lg whitespace-nowrap cursor-pointer transition-colors">
                         ล้างตัวกรอง
@@ -541,13 +565,23 @@
 
         <!-- ตารางรายการใบงานที่แปลงแล้ว (เรียงคอลัมน์ตามที่กำหนด) -->
         <section id="workorder-table-section" class="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex flex-wrap justify-between items-center gap-2">
+            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex flex-col xl:flex-row xl:items-center justify-between gap-3">
                 <div>
                     <h2 id="tableSectionTitle" class="font-bold text-slate-900 text-sm">ตารางงานที่ต้องตามปิด (Task Status ยังไม่ Completed และเลยวันที่อ้างอิงตัดรอบแล้ว)</h2>
                 </div>
-                <div class="flex items-center gap-2 text-xs text-slate-600 font-mono-tabular">
-                    <span id="rowCount">ทั้งหมด 0 รายการ</span>
-                    <span id="activeTeamBadge" class="hidden text-blue-700 font-semibold"></span>
+                <div class="flex flex-wrap items-center justify-between sm:justify-end gap-3 text-xs text-slate-600">
+                    <div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="เลือกจำนวนรายการที่แสดงต่อหน้า">
+                        <span class="text-xs font-medium text-slate-500 mr-0.5 whitespace-nowrap">แสดงต่อหน้า:</span>
+                        <button type="button" data-page-size="30" class="table-page-size-btn px-2.5 py-1 text-xs font-medium rounded-md bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 cursor-pointer transition-colors font-mono-tabular">30</button>
+                        <button type="button" data-page-size="60" class="table-page-size-btn px-2.5 py-1 text-xs font-medium rounded-md bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 cursor-pointer transition-colors font-mono-tabular">60</button>
+                        <button type="button" data-page-size="90" class="table-page-size-btn px-2.5 py-1 text-xs font-medium rounded-md bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 cursor-pointer transition-colors font-mono-tabular">90</button>
+                        <button type="button" data-page-size="140" class="table-page-size-btn px-2.5 py-1 text-xs font-medium rounded-md bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 cursor-pointer transition-colors font-mono-tabular">140</button>
+                        <button type="button" data-page-size="0" class="table-page-size-btn px-2.5 py-1 text-xs font-semibold rounded-md bg-blue-100 text-blue-900 border border-blue-300 cursor-pointer transition-colors">ทั้งหมด</button>
+                    </div>
+                    <div class="flex items-center gap-2 font-mono-tabular">
+                        <span id="rowCount">ทั้งหมด 0 รายการ</span>
+                        <span id="activeTeamBadge" class="hidden text-blue-700 font-semibold"></span>
+                    </div>
                 </div>
             </div>
 
@@ -575,6 +609,11 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <div id="tablePaginationBar" class="hidden px-6 py-3 border-t border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-3">
+                <span id="paginationInfoText" class="text-xs font-medium text-slate-600 font-mono-tabular"></span>
+                <div id="paginationControls" class="flex flex-wrap items-center gap-1.5" role="navigation" aria-label="เปลี่ยนหน้าตาราง"></div>
             </div>
         </section>
 
@@ -703,6 +742,10 @@
         let activeBucket = "followup"; // followup (Scheduled+Processing) | completed_new (Completed+New) | all
         let selectedTeamKey = "";
         let activeAgingDays = 30;
+        let teamSummaryLosOnly = false;
+        let tableLosOnly = false;
+        let tablePageSize = 0; // 0 = ทั้งหมด | 30 | 60 | 90 | 140
+        let currentTablePage = 1;
         let currentModalJob = null;
 
         // DOM Elements
@@ -721,10 +764,14 @@
         const agingSummarySection = document.getElementById("aging-summary-section");
         const actionToolbar = document.getElementById("actionToolbar");
         const tableBody = document.getElementById("tableBody");
+        const tablePaginationBar = document.getElementById("tablePaginationBar");
+        const paginationInfoText = document.getElementById("paginationInfoText");
+        const paginationControls = document.getElementById("paginationControls");
         const teamSummaryBody = document.getElementById("teamSummaryBody");
         const teamSummarySearchInput = document.getElementById("teamSummarySearchInput");
         const teamSummaryRegionFilter = document.getElementById("teamSummaryRegionFilter");
         const teamSummaryFilterSelect = document.getElementById("teamSummaryFilterSelect");
+        const teamSummaryLosBtn = document.getElementById("teamSummaryLosBtn");
         const clearTeamFilterBtn = document.getElementById("clearTeamFilterBtn");
         const activeTeamBadge = document.getElementById("activeTeamBadge");
 
@@ -743,6 +790,7 @@
         const ownerFilter = document.getElementById("ownerFilter");
         const taskStatusFilter = document.getElementById("taskStatusFilter");
         const teamScopeFilter = document.getElementById("teamScopeFilter");
+        const tableLosFilterBtn = document.getElementById("tableLosFilterBtn");
         const clearTableFiltersBtn = document.getElementById("clearTableFiltersBtn");
         const sheetSelectWrapper = document.getElementById("sheetSelectWrapper");
         const sheetSelect = document.getElementById("sheetSelect");
@@ -933,6 +981,10 @@
             transformedJobs = [];
             selectedTeamKey = "";
             activeAgingDays = 30;
+            teamSummaryLosOnly = false;
+            tableLosOnly = false;
+            currentTablePage = 1;
+            updateLosFilterButtonsUI();
             teamSummarySearchInput.value = "";
             teamSummaryRegionFilter.value = "";
             teamSummaryFilterSelect.value = "";
@@ -1524,6 +1576,10 @@
             rawRows = filteredRows;
             selectedTeamKey = "";
             activeAgingDays = 30;
+            teamSummaryLosOnly = false;
+            tableLosOnly = false;
+            currentTablePage = 1;
+            updateLosFilterButtonsUI();
             teamSummarySearchInput.value = "";
             teamSummaryRegionFilter.value = "";
             agingSummarySearchInput.value = "";
@@ -1776,8 +1832,28 @@
             }
         }
 
+        function isLosTitleJob(job) {
+            return /(^|[^a-z])los([^a-z]|$)/i.test(String(job.title || ""));
+        }
+
+        function updateLosFilterButtonsUI() {
+            if (teamSummaryLosBtn) {
+                teamSummaryLosBtn.setAttribute("aria-pressed", teamSummaryLosOnly ? "true" : "false");
+                teamSummaryLosBtn.className = teamSummaryLosOnly
+                    ? "px-3 py-1.5 text-xs font-bold text-sky-950 bg-sky-100 border-2 border-sky-400 hover:bg-sky-200 rounded-lg whitespace-nowrap cursor-pointer transition-colors"
+                    : "px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-sky-50 hover:border-sky-300 rounded-lg whitespace-nowrap cursor-pointer transition-colors";
+            }
+            if (tableLosFilterBtn) {
+                tableLosFilterBtn.setAttribute("aria-pressed", tableLosOnly ? "true" : "false");
+                tableLosFilterBtn.className = tableLosOnly
+                    ? "px-3 py-2 text-xs font-bold text-sky-950 bg-sky-100 border-2 border-sky-400 hover:bg-sky-200 rounded-lg whitespace-nowrap cursor-pointer transition-colors"
+                    : "px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 hover:bg-sky-50 hover:border-sky-300 rounded-lg whitespace-nowrap cursor-pointer transition-colors";
+            }
+        }
+
         function renderTeamSummary(followupJobs) {
             teamSummaryBody.replaceChildren();
+            updateLosFilterButtonsUI();
 
             const summaryRegions = Array.from(new Set(followupJobs.map((j) => j.region).filter(Boolean))).sort();
             fillSelect(teamSummaryRegionFilter, "ทุกภูมิภาค (Region)", summaryRegions);
@@ -1785,6 +1861,7 @@
             const teamKeyword = teamSummarySearchInput.value.trim().toLowerCase();
 
             const scopedJobs = followupJobs.filter((job) => {
+                if (teamSummaryLosOnly && !isLosTitleJob(job)) return false;
                 if (selectedSummaryRegion && job.region !== selectedSummaryRegion) return false;
                 if (teamKeyword) {
                     const haystack = [
@@ -1853,9 +1930,15 @@
                         selectedTeamKey = selectedTeamKey === t.teamShort ? "" : t.teamShort;
                         teamSummaryFilterSelect.value = selectedTeamKey;
                         syncTeamScopeWithSelectedKey();
-                        if (selectedTeamKey && teamSummaryRegionFilter.value) {
-                            regionFilter.value = teamSummaryRegionFilter.value;
+                        if (selectedTeamKey) {
+                            if (teamSummaryRegionFilter.value) {
+                                regionFilter.value = teamSummaryRegionFilter.value;
+                            }
+                            if (teamSummaryLosOnly) {
+                                tableLosOnly = true;
+                            }
                         }
+                        currentTablePage = 1;
                         activeBucket = "followup";
                         updateAllViews();
                     });
@@ -1921,7 +2004,7 @@
                 teamSummaryBody.appendChild(frag);
             }
 
-            if (selectedTeamKey || teamSummarySearchInput.value.trim() || teamSummaryFilterSelect.value || teamSummaryRegionFilter.value) {
+            if (selectedTeamKey || teamSummaryLosOnly || teamSummarySearchInput.value.trim() || teamSummaryFilterSelect.value || teamSummaryRegionFilter.value) {
                 clearTeamFilterBtn.classList.remove("hidden");
             } else {
                 clearTeamFilterBtn.classList.add("hidden");
@@ -2145,6 +2228,7 @@
                 if (selectedTeamKey && job.contractTeamGroup !== selectedTeamKey) return false;
                 if (regionVal && job.region !== regionVal) return false;
                 if (ownerVal && job.productOwner !== ownerVal) return false;
+                if (tableLosOnly && !isLosTitleJob(job)) return false;
 
                 if (keyword) {
                     const haystack = [
@@ -2172,6 +2256,93 @@
             return list;
         }
 
+        function getPaginatedTableJobs() {
+            const allFiltered = getFilteredJobs();
+            const total = allFiltered.length;
+            const totalPages = tablePageSize > 0 && total > 0 ? Math.ceil(total / tablePageSize) : 1;
+            if (currentTablePage > totalPages) currentTablePage = totalPages;
+            if (currentTablePage < 1) currentTablePage = 1;
+
+            const startIdx = tablePageSize > 0 ? (currentTablePage - 1) * tablePageSize : 0;
+            const pageItems = tablePageSize > 0 ? allFiltered.slice(startIdx, startIdx + tablePageSize) : allFiltered;
+            return { allFiltered, pageItems, total, totalPages, page: currentTablePage, startIdx };
+        }
+
+        function updateTablePageSizeUI() {
+            document.querySelectorAll(".table-page-size-btn").forEach((btn) => {
+                const size = Number(btn.dataset.pageSize || 0);
+                const isActive = size === tablePageSize;
+                btn.className = isActive
+                    ? "table-page-size-btn px-2.5 py-1 text-xs font-semibold rounded-md bg-blue-100 text-blue-900 border border-blue-300 cursor-pointer transition-colors font-mono-tabular"
+                    : "table-page-size-btn px-2.5 py-1 text-xs font-medium rounded-md bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 cursor-pointer transition-colors font-mono-tabular";
+                btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+            });
+        }
+
+        function renderPaginationControls(total, totalPages, page, startIdx, pageItemsCount) {
+            if (total === 0 || tablePageSize === 0) {
+                tablePaginationBar.classList.add("hidden");
+                paginationControls.replaceChildren();
+                paginationInfoText.textContent = "";
+                return;
+            }
+
+            tablePaginationBar.classList.remove("hidden");
+            const endIdx = startIdx + pageItemsCount;
+            paginationInfoText.textContent = `แสดง ${(startIdx + 1).toLocaleString("th-TH")}–${endIdx.toLocaleString("th-TH")} จากทั้งหมด ${total.toLocaleString("th-TH")} รายการ (หน้า ${page} / ${totalPages})`;
+
+            paginationControls.replaceChildren();
+            const frag = document.createDocumentFragment();
+
+            const prevBtn = document.createElement("button");
+            prevBtn.type = "button";
+            prevBtn.textContent = "ก่อนหน้า";
+            prevBtn.disabled = page <= 1;
+            prevBtn.className = page <= 1
+                ? "px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
+                : "px-2.5 py-1 text-xs font-medium rounded-md bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 cursor-pointer transition-colors";
+            prevBtn.addEventListener("click", () => {
+                if (currentTablePage > 1) {
+                    currentTablePage--;
+                    renderWorkOrderTable();
+                }
+            });
+            frag.appendChild(prevBtn);
+
+            for (let p = 1; p <= totalPages; p++) {
+                const pageBtn = document.createElement("button");
+                pageBtn.type = "button";
+                pageBtn.textContent = String(p);
+                const isActive = p === page;
+                pageBtn.className = isActive
+                    ? "px-2.5 py-1 text-xs font-bold rounded-md bg-blue-100 text-blue-900 border border-blue-400 cursor-pointer font-mono-tabular transition-colors"
+                    : "px-2.5 py-1 text-xs font-medium rounded-md bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 cursor-pointer font-mono-tabular transition-colors";
+                pageBtn.setAttribute("aria-current", isActive ? "page" : "false");
+                pageBtn.addEventListener("click", () => {
+                    currentTablePage = p;
+                    renderWorkOrderTable();
+                });
+                frag.appendChild(pageBtn);
+            }
+
+            const nextBtn = document.createElement("button");
+            nextBtn.type = "button";
+            nextBtn.textContent = "ถัดไป";
+            nextBtn.disabled = page >= totalPages;
+            nextBtn.className = page >= totalPages
+                ? "px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
+                : "px-2.5 py-1 text-xs font-medium rounded-md bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 cursor-pointer transition-colors";
+            nextBtn.addEventListener("click", () => {
+                if (currentTablePage < totalPages) {
+                    currentTablePage++;
+                    renderWorkOrderTable();
+                }
+            });
+            frag.appendChild(nextBtn);
+
+            paginationControls.appendChild(frag);
+        }
+
         function renderEmptyTable(title, subtitle) {
             tableBody.replaceChildren();
             const tr = document.createElement("tr");
@@ -2193,10 +2364,14 @@
             tableBody.appendChild(tr);
 
             document.getElementById("rowCount").textContent = "ทั้งหมด 0 รายการ";
+            renderPaginationControls(0, 1, 1, 0, 0);
         }
 
         function renderWorkOrderTable() {
-            const list = getFilteredJobs();
+            updateTablePageSizeUI();
+            updateLosFilterButtonsUI();
+
+            const { pageItems, total, totalPages, page, startIdx } = getPaginatedTableJobs();
             const titleMap = {
                 followup: "ตารางงานที่ต้องตามปิด (Task Status ยังไม่ Completed และเลยวันที่อ้างอิงตัดรอบแล้ว)",
                 completed_new: "ตารางงาน Completed + New (งานที่ปิดแล้วและงานที่ยังไม่เลยวันตัดรอบ)",
@@ -2204,7 +2379,7 @@
             };
             document.getElementById("tableSectionTitle").textContent = titleMap[activeBucket] || "ตารางรายการใบงาน";
 
-            if (list.length === 0) {
+            if (total === 0) {
                 renderEmptyTable("ไม่พบใบงานตามเงื่อนไขที่เลือก", "ลองเปลี่ยนแท็บสถานะ ล้างตัวกรองทีม หรือปรับคำค้นหา");
                 return;
             }
@@ -2223,7 +2398,7 @@
                 );
             }
 
-            list.forEach((job, idx) => {
+            pageItems.forEach((job, idx) => {
                 const isEveningFollowupRow = job.statusGroup === "scheduled_processing" && isEveningWorkOrderTeam(job);
                 const tr = document.createElement("tr");
                 tr.className = isEveningFollowupRow
@@ -2235,7 +2410,7 @@
                 tdIdx.className = isEveningFollowupRow
                     ? "px-3 py-3 text-center text-xs text-slate-400 font-mono-tabular bg-slate-50/50 border-l-4 border-l-amber-500"
                     : "px-3 py-3 text-center text-xs text-slate-400 font-mono-tabular bg-slate-50/50";
-                tdIdx.textContent = String(idx + 1);
+                tdIdx.textContent = String(startIdx + idx + 1);
                 tr.appendChild(tdIdx);
 
                 // 2. สถานะติดตาม (อยู่ระหว่าง # กับ Request No. / Access)
@@ -2422,7 +2597,10 @@
             });
 
             tableBody.appendChild(frag);
-            document.getElementById("rowCount").textContent = `แสดง ${list.length.toLocaleString("th-TH")} รายการ`;
+            document.getElementById("rowCount").textContent = tablePageSize > 0
+                ? `แสดง ${(startIdx + 1).toLocaleString("th-TH")}–${(startIdx + pageItems.length).toLocaleString("th-TH")} จาก ${total.toLocaleString("th-TH")} รายการ`
+                : `แสดง ${total.toLocaleString("th-TH")} รายการ`;
+            renderPaginationControls(total, totalPages, page, startIdx, pageItems.length);
         }
 
         // ===== สร้างตารางตามตัวอย่างสำหรับ "คัดลอกตามทีม" (HTML Table + TSV) =====
@@ -2676,6 +2854,7 @@
         document.querySelectorAll(".bucket-tab").forEach((btn) => {
             btn.addEventListener("click", () => {
                 activeBucket = btn.dataset.bucket;
+                currentTablePage = 1;
                 if (activeBucket === "completed_new") {
                     selectedTeamKey = "";
                     teamSummaryFilterSelect.value = "";
@@ -2694,6 +2873,12 @@
             renderTeamSummary(followupJobs);
         });
 
+        teamSummaryLosBtn.addEventListener("click", () => {
+            teamSummaryLosOnly = !teamSummaryLosOnly;
+            const followupJobs = transformedJobs.filter((j) => j.statusGroup === "scheduled_processing");
+            renderTeamSummary(followupJobs);
+        });
+
         teamSummaryFilterSelect.addEventListener("change", () => {
             selectedTeamKey = teamSummaryFilterSelect.value;
             syncTeamScopeWithSelectedKey();
@@ -2701,17 +2886,23 @@
                 if (teamSummaryRegionFilter.value) {
                     regionFilter.value = teamSummaryRegionFilter.value;
                 }
+                if (teamSummaryLosOnly) {
+                    tableLosOnly = true;
+                }
                 activeBucket = "followup";
             }
+            currentTablePage = 1;
             updateAllViews();
         });
 
         clearTeamFilterBtn.addEventListener("click", () => {
             selectedTeamKey = "";
+            teamSummaryLosOnly = false;
             teamSummarySearchInput.value = "";
             teamSummaryRegionFilter.value = "";
             teamSummaryFilterSelect.value = "";
             teamScopeFilter.value = "";
+            currentTablePage = 1;
             updateAllViews();
         });
 
@@ -2748,6 +2939,7 @@
 
         cutoffInput.addEventListener("change", () => {
             if (rawRows.length > 0) {
+                currentTablePage = 1;
                 transformAllRows();
                 updateAllViews();
             }
@@ -2756,6 +2948,7 @@
         setNowCutoffBtn.addEventListener("click", () => {
             cutoffInput.value = toDateInputValue(new Date());
             if (rawRows.length > 0) {
+                currentTablePage = 1;
                 transformAllRows();
                 updateAllViews();
             }
@@ -2777,12 +2970,33 @@
                 selectedTeamKey = "";
                 teamSummaryFilterSelect.value = "";
             }
+            currentTablePage = 1;
             updateAllViews();
         });
 
         [tableSearchInput, regionFilter, ownerFilter, taskStatusFilter].forEach((el) => {
-            el.addEventListener("input", renderWorkOrderTable);
-            el.addEventListener("change", renderWorkOrderTable);
+            el.addEventListener("input", () => {
+                currentTablePage = 1;
+                renderWorkOrderTable();
+            });
+            el.addEventListener("change", () => {
+                currentTablePage = 1;
+                renderWorkOrderTable();
+            });
+        });
+
+        tableLosFilterBtn.addEventListener("click", () => {
+            tableLosOnly = !tableLosOnly;
+            currentTablePage = 1;
+            renderWorkOrderTable();
+        });
+
+        document.querySelectorAll(".table-page-size-btn").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                tablePageSize = Number(btn.dataset.pageSize || 0);
+                currentTablePage = 1;
+                renderWorkOrderTable();
+            });
         });
 
         clearTableFiltersBtn.addEventListener("click", () => {
@@ -2791,6 +3005,8 @@
             ownerFilter.value = "";
             taskStatusFilter.value = "";
             teamScopeFilter.value = "";
+            tableLosOnly = false;
+            currentTablePage = 1;
             if (selectedTeamKey) {
                 selectedTeamKey = "";
                 teamSummaryFilterSelect.value = "";
@@ -2799,14 +3015,17 @@
             showToast("ล้างตัวกรองตารางเรียบร้อยแล้ว");
         });
 
-        copyAllVisibleBtn.addEventListener("click", () => {
-            const list = getFilteredJobs();
-            if (list.length === 0) {
+        copyAllVisibleBtn.addEventListener("click", async () => {
+            const { pageItems, totalPages, page } = getPaginatedTableJobs();
+            if (pageItems.length === 0) {
                 showToast("ไม่มีรายการให้คัดลอก");
                 return;
             }
-            const { htmlTable, plainTsv } = buildFollowupTablePayload(list);
-            copyRichTable(htmlTable, plainTsv);
+            const { htmlTable, plainTsv } = buildFollowupTablePayload(pageItems);
+            await copyRichTable(htmlTable, plainTsv);
+            if (tablePageSize > 0 && totalPages > 1) {
+                showToast(`คัดลอกตารางหน้า ${page} (${pageItems.length.toLocaleString("th-TH")} รายการ) เรียบร้อยแล้ว`);
+            }
         });
 
         function cleanExcelCellText(val) {
