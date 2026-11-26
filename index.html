@@ -418,34 +418,36 @@
 
         <!-- ส่วนสรุปงานค้างรายทีมช่าง (มีช่องค้นหาเฉพาะทีม + ปุ่มคัดลอกเป็นตาราง) -->
         <section id="team-summary-section" class="hidden bg-white border border-slate-200 rounded-xl overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                <div>
-                    <h2 class="text-sm font-bold text-slate-900">สรุปรายทีมช่างที่ต้องตามปิดงาน</h2>
-                    <p class="text-xs text-slate-500">คลิกชื่อทีมเพื่อกรองรายการ หรือกด "คัดลอกตามทีม" เพื่อคัดลอกเป็นตารางส่งแจ้งทีมช่าง</p>
+            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <div>
+                        <h2 class="text-sm font-bold text-slate-900">สรุปรายทีมช่างที่ต้องตามปิดงาน</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">คลิกชื่อทีมเพื่อกรองรายการ หรือกด "คัดลอกตามทีม" เพื่อคัดลอกเป็นตารางส่งแจ้งทีมช่าง</p>
+                    </div>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2">
-                    <div class="relative min-w-[260px] flex-1 sm:flex-initial">
+                <div class="flex flex-wrap lg:flex-nowrap items-center gap-2">
+                    <div class="relative flex-1 min-w-[200px]">
                         <svg width="16" height="16" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <circle cx="11" cy="11" r="8" />
                             <line x1="21" y1="21" x2="16.65" y2="16.65" />
                         </svg>
                         <input type="search" id="teamSummarySearchInput" placeholder="ค้นหา Request, Access, ช่าง, ทีม, เบอร์..." aria-label="ค้นหา Request, Access, ช่าง, ทีม ในตารางสรุปรายทีม"
-                               class="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                               class="w-full h-9 pl-9 pr-3 text-xs bg-white border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600" />
                     </div>
                     <select id="teamSummaryRegionFilter" aria-label="เลือกกรองภูมิภาคในตารางสรุปรายทีมช่าง"
-                            class="px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600">
+                            class="h-9 px-3 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-600">
                         <option value="">ทุกภูมิภาค (Region)</option>
                     </select>
                     <select id="teamSummaryFilterSelect" aria-label="เลือกกรองทีมช่าง"
-                            class="px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 max-w-[240px] focus:outline-none focus:ring-2 focus:ring-blue-600">
+                            class="h-9 px-3 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 w-full sm:w-56 lg:w-60 shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-600">
                         <option value="">ทุกทีมช่าง (แสดงทั้งหมด)</option>
                     </select>
                     <button type="button" id="teamSummaryLosBtn" aria-pressed="false"
-                            class="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-sky-50 hover:border-sky-300 rounded-lg whitespace-nowrap cursor-pointer transition-colors">
+                            class="h-9 px-3.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-sky-50 hover:border-sky-300 rounded-lg whitespace-nowrap shrink-0 cursor-pointer transition-colors">
                         กรอง Title: Los
                     </button>
-                    <button type="button" id="clearTeamFilterBtn" class="hidden px-3 py-1.5 text-xs font-semibold text-amber-900 bg-amber-100 border border-amber-300 hover:bg-amber-200 rounded-lg whitespace-nowrap cursor-pointer transition-colors">
+                    <button type="button" id="clearTeamFilterBtn" class="hidden h-9 px-3.5 text-xs font-semibold text-amber-900 bg-amber-100 border border-amber-300 hover:bg-amber-200 rounded-lg whitespace-nowrap shrink-0 cursor-pointer transition-colors">
                         ล้างตัวกรองทีม
                     </button>
                 </div>
@@ -497,68 +499,72 @@
                 </div>
             </div>
 
-            <!-- แถวที่ 2: ตัวกรองย่อย (ค้นหา, ภูมิภาค, Product, กลุ่มสถานะ, สลับชีต, ส่งออก) -->
-            <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
-                <div class="flex flex-wrap items-center gap-2 flex-1">
-                    <div class="relative min-w-[220px] flex-1 sm:flex-initial">
+            <!-- แถวที่ 2: ตัวกรองย่อยทั้งหมดให้อยู่ในแถวเดียวกันอย่างเป็นระเบียบ -->
+            <div class="pt-3 border-t border-slate-100 space-y-3">
+                <div class="flex flex-wrap xl:flex-nowrap items-center gap-2">
+                    <div class="relative flex-1 min-w-[190px]">
                         <svg width="16" height="16" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <circle cx="11" cy="11" r="8" />
                             <line x1="21" y1="21" x2="16.65" y2="16.65" />
                         </svg>
                         <input type="search" id="tableSearchInput" placeholder="ค้นหา Request, Access, ช่าง, ทีม, เบอร์..." aria-label="ค้นหาข้อมูลในตาราง"
-                               class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white" />
+                               class="w-full h-9 pl-9 pr-3 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white" />
                     </div>
 
                     <select id="regionFilter" aria-label="กรองตามภูมิภาค"
-                            class="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600">
+                            class="h-9 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-600">
                         <option value="">ทุกภูมิภาค (Region)</option>
                     </select>
 
                     <select id="ownerFilter" aria-label="กรองตาม Product Owner"
-                            class="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600">
+                            class="h-9 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-600">
                         <option value="">ทุก Product</option>
                     </select>
 
                     <select id="taskStatusFilter" aria-label="กรองตามกลุ่มสถานะ Task Status"
-                            class="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600">
+                            class="h-9 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-600">
                         <option value="">ทุกกลุ่มสถานะ</option>
                         <option value="scheduled_processing">Scheduled + Processing</option>
                         <option value="completed_new">Completed + New</option>
                     </select>
 
                     <select id="teamScopeFilter" aria-label="กรองกลุ่มทีมรีแลค"
-                            class="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600">
+                            class="h-9 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-600">
                         <option value="">ทุกทีม (รวมทีมรีแลค)</option>
                         <option value="relax">ทีมรีแลค</option>
                         <option value="other">ทีมอื่น ๆ (ไม่ใช่ทีมรีแลค)</option>
                     </select>
 
                     <button type="button" id="tableLosFilterBtn" aria-pressed="false"
-                            class="px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 hover:bg-sky-50 hover:border-sky-300 rounded-lg whitespace-nowrap cursor-pointer transition-colors">
+                            class="h-9 px-3 text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 hover:bg-sky-50 hover:border-sky-300 rounded-lg whitespace-nowrap shrink-0 cursor-pointer transition-colors">
                         กรอง Title: Los
                     </button>
 
                     <button type="button" id="clearTableFiltersBtn"
-                            class="px-3 py-2 text-xs font-semibold text-amber-900 bg-amber-100 border border-amber-300 hover:bg-amber-200 rounded-lg whitespace-nowrap cursor-pointer transition-colors">
+                            class="h-9 px-3 text-xs font-semibold text-amber-900 bg-amber-100 border border-amber-300 hover:bg-amber-200 rounded-lg whitespace-nowrap shrink-0 cursor-pointer transition-colors">
                         ล้างตัวกรอง
                     </button>
 
-                    <div id="sheetSelectWrapper" class="hidden items-center gap-1.5">
+                    <div id="sheetSelectWrapper" class="hidden items-center gap-1.5 shrink-0">
                         <span class="text-xs text-slate-500">ชีต:</span>
                         <select id="sheetSelect" aria-label="เลือกแผ่นงาน"
-                                class="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600"></select>
+                                class="h-9 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600"></select>
                     </div>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2 shrink-0">
-                    <button type="button" id="copyAllVisibleBtn"
-                            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-indigo-900 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 rounded-lg transition-colors whitespace-nowrap cursor-pointer">
-                        คัดลอกตารางตามรายการที่แสดง
-                    </button>
-                    <button type="button" id="exportExcelBtn"
-                            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-emerald-900 bg-emerald-100 border border-emerald-300 hover:bg-emerald-200 rounded-lg transition-colors whitespace-nowrap cursor-pointer">
-                        ส่งออก Excel (.xlsx)
-                    </button>
+                <!-- แถวที่ 3: ปุ่มคัดลอกตามหน้าและส่งออก Excel แยกเป็นสัดส่วนชัดเจน -->
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-2.5 border-t border-slate-100">
+                    <p class="text-xs text-slate-500">คัดลอกตารางจะคัดลอกเฉพาะรายการที่แสดงในหน้าปัจจุบัน ส่วนส่งออก Excel จะส่งออกครบทุกรายการที่กรองไว้</p>
+                    <div class="flex flex-wrap items-center gap-2 shrink-0">
+                        <button type="button" id="copyAllVisibleBtn"
+                                class="inline-flex items-center gap-1.5 h-9 px-3.5 text-xs font-medium text-indigo-900 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 rounded-lg transition-colors whitespace-nowrap cursor-pointer">
+                            คัดลอกตารางตามรายการที่แสดง
+                        </button>
+                        <button type="button" id="exportExcelBtn"
+                                class="inline-flex items-center gap-1.5 h-9 px-3.5 text-xs font-semibold text-emerald-900 bg-emerald-100 border border-emerald-300 hover:bg-emerald-200 rounded-lg transition-colors whitespace-nowrap cursor-pointer">
+                            ส่งออก Excel (.xlsx)
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -658,28 +664,28 @@
                 </div>
 
                 <!-- แถบกรองข้อมูลเหมือนหัวข้อ สรุปรายทีมช่างที่ต้องตามปิดงาน -->
-                <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100">
+                <div class="pt-3 border-t border-slate-100 space-y-2.5">
                     <div class="text-xs font-medium text-slate-600">
                         แสดงรายชื่อทีมช่าง (Contract Team) ที่มีงาน Scheduled + Processing ค้างเกินตามช่วงเวลาที่เลือก
                     </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <div class="relative min-w-[260px] flex-1 sm:flex-initial">
+                    <div class="flex flex-wrap lg:flex-nowrap items-center gap-2">
+                        <div class="relative flex-1 min-w-[200px]">
                             <svg width="16" height="16" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <circle cx="11" cy="11" r="8" />
                                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
                             </svg>
                             <input type="search" id="agingSummarySearchInput" placeholder="ค้นหา Request, Access, ช่าง, ทีม, เบอร์..." aria-label="ค้นหา Request, Access, ช่าง, ทีม ในตารางงานเกินกำหนด"
-                                   class="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                                   class="w-full h-9 pl-9 pr-3 text-xs bg-white border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600" />
                         </div>
                         <select id="agingSummaryRegionFilter" aria-label="เลือกกรองภูมิภาคในตารางงานเกินกำหนด"
-                                class="px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600">
+                                class="h-9 px-3 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-600">
                             <option value="">ทุกภูมิภาค (Region)</option>
                         </select>
                         <select id="agingSummaryFilterSelect" aria-label="เลือกกรองทีมช่างในตารางงานเกินกำหนด"
-                                class="px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 max-w-[240px] focus:outline-none focus:ring-2 focus:ring-blue-600">
+                                class="h-9 px-3 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 w-full sm:w-56 lg:w-60 shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-600">
                             <option value="">ทุกทีมช่าง (แสดงทั้งหมด)</option>
                         </select>
-                        <button type="button" id="clearAgingFilterBtn" class="hidden px-3 py-1.5 text-xs font-semibold text-amber-900 bg-amber-100 border border-amber-300 hover:bg-amber-200 rounded-lg whitespace-nowrap cursor-pointer transition-colors">
+                        <button type="button" id="clearAgingFilterBtn" class="hidden h-9 px-3.5 text-xs font-semibold text-amber-900 bg-amber-100 border border-amber-300 hover:bg-amber-200 rounded-lg whitespace-nowrap shrink-0 cursor-pointer transition-colors">
                             ล้างตัวกรองทีม
                         </button>
                     </div>
@@ -1840,14 +1846,14 @@
             if (teamSummaryLosBtn) {
                 teamSummaryLosBtn.setAttribute("aria-pressed", teamSummaryLosOnly ? "true" : "false");
                 teamSummaryLosBtn.className = teamSummaryLosOnly
-                    ? "px-3 py-1.5 text-xs font-bold text-sky-950 bg-sky-100 border-2 border-sky-400 hover:bg-sky-200 rounded-lg whitespace-nowrap cursor-pointer transition-colors"
-                    : "px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-sky-50 hover:border-sky-300 rounded-lg whitespace-nowrap cursor-pointer transition-colors";
+                    ? "h-9 px-3.5 text-xs font-bold text-sky-950 bg-sky-100 border border-sky-400 ring-1 ring-sky-400 hover:bg-sky-200 rounded-lg whitespace-nowrap shrink-0 cursor-pointer transition-colors"
+                    : "h-9 px-3.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-sky-50 hover:border-sky-300 rounded-lg whitespace-nowrap shrink-0 cursor-pointer transition-colors";
             }
             if (tableLosFilterBtn) {
                 tableLosFilterBtn.setAttribute("aria-pressed", tableLosOnly ? "true" : "false");
                 tableLosFilterBtn.className = tableLosOnly
-                    ? "px-3 py-2 text-xs font-bold text-sky-950 bg-sky-100 border-2 border-sky-400 hover:bg-sky-200 rounded-lg whitespace-nowrap cursor-pointer transition-colors"
-                    : "px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 hover:bg-sky-50 hover:border-sky-300 rounded-lg whitespace-nowrap cursor-pointer transition-colors";
+                    ? "h-9 px-3 text-xs font-bold text-sky-950 bg-sky-100 border border-sky-400 ring-1 ring-sky-400 hover:bg-sky-200 rounded-lg whitespace-nowrap shrink-0 cursor-pointer transition-colors"
+                    : "h-9 px-3 text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 hover:bg-sky-50 hover:border-sky-300 rounded-lg whitespace-nowrap shrink-0 cursor-pointer transition-colors";
             }
         }
 
